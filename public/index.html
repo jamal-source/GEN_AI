@@ -1,0 +1,235 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>DevTutor AI — Mentor Pemrograman Web</title>
+  <meta name="description" content="AI Chatbot mentor belajar web development & debugging. Oleh Jamaludin, Universitas Putra Bangsa Kebumen." />
+
+  <!-- Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500;600&family=Inter:ital,opsz,wght@0,14..32,300;0,14..32,400;0,14..32,500;0,14..32,600;0,14..32,700;1,14..32,400&display=swap" rel="stylesheet">
+
+  <!-- Highlight.js untuk syntax highlighting kode -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github-dark.min.css">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js" defer></script>
+
+  <link rel="stylesheet" href="style.css"/>
+</head>
+<body>
+
+  <div class="layout">
+
+    <!-- ── Sidebar ──────────────────────────────────────── -->
+    <aside class="sidebar">
+      <div class="sidebar-top">
+        <div class="logo">
+          <div class="logo-icon">
+            <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <polyline points="16 18 22 12 16 6"></polyline>
+              <polyline points="8 6 2 12 8 18"></polyline>
+            </svg>
+          </div>
+          <span class="logo-text">DevTutor AI</span>
+        </div>
+
+        <button id="new-chat-btn" class="new-chat-btn">
+          <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+            <line x1="12" y1="5" x2="12" y2="19"></line>
+            <line x1="5" y1="12" x2="19" y2="12"></line>
+          </svg>
+          New Chat
+        </button>
+      </div>
+
+      <div class="sidebar-info">
+        <div class="info-card">
+          <div class="info-card-header">
+            <span class="info-card-dot dot-blue"></span>
+            Model Aktif
+          </div>
+          <div class="info-card-value" id="sidebar-model-label">Gemini 2.5 Flash</div>
+        </div>
+        <div class="info-card">
+          <div class="info-card-header">
+            <span class="info-card-dot dot-green"></span>
+            Status
+          </div>
+          <div class="info-card-value" id="sidebar-status">Online</div>
+        </div>
+        <div class="info-card">
+          <div class="info-card-header">
+            <span class="info-card-dot dot-purple"></span>
+            Pesan Sesi
+          </div>
+          <div class="info-card-value" id="msg-count">0 pesan</div>
+        </div>
+      </div>
+
+      <!-- Model Selector -->
+      <div class="model-selector">
+        <p class="model-selector-title">Pilih AI Model</p>
+
+        <label class="model-option" id="option-gemini">
+          <input type="radio" name="ai-provider" value="gemini" checked />
+          <div class="model-option-body">
+            <div class="model-option-top">
+              <span class="model-badge badge-google">Google</span>
+              <span class="model-name">Gemini 2.5 Flash</span>
+            </div>
+            <div class="model-desc">Model utama. Akurat & cepat.</div>
+          </div>
+        </label>
+
+        <label class="model-option" id="option-groq">
+          <input type="radio" name="ai-provider" value="groq" />
+          <div class="model-option-body">
+            <div class="model-option-top">
+              <span class="model-badge badge-groq">Groq</span>
+              <span class="model-name">Llama 3.3 70B</span>
+            </div>
+            <div class="model-desc">Open-source · 14K req/hari gratis</div>
+          </div>
+        </label>
+      </div>
+
+      <div class="sidebar-capabilities">
+        <p class="cap-title">Topik yang bisa ditanyakan</p>
+        <ul class="cap-list">
+          <li>
+            <span class="cap-icon">🧩</span>
+            HTML, CSS, JavaScript
+          </li>
+          <li>
+            <span class="cap-icon">🟢</span>
+            Node.js &amp; Express
+          </li>
+          <li>
+            <span class="cap-icon">🔗</span>
+            REST API &amp; JSON
+          </li>
+          <li>
+            <span class="cap-icon">🐛</span>
+            Debugging kode error
+          </li>
+          <li>
+            <span class="cap-icon">🤖</span>
+            AI API Integration
+          </li>
+        </ul>
+      </div>
+
+      <div class="sidebar-footer">
+        <div class="author-info">
+          <div class="author-avatar">J</div>
+          <div>
+            <div class="author-name">Jamaludin</div>
+            <div class="author-univ">Universitas Putra Bangsa Kebumen</div>
+          </div>
+        </div>
+      </div>
+    </aside>
+
+    <!-- ── Main Chat ─────────────────────────────────────── -->
+    <div class="chat-pane">
+
+      <!-- Mobile Header (hidden on desktop) -->
+      <header class="mobile-header">
+        <button class="mobile-menu-btn" id="sidebar-toggle" title="Menu">
+          <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <line x1="3" y1="12" x2="21" y2="12"></line>
+            <line x1="3" y1="6" x2="21" y2="6"></line>
+            <line x1="3" y1="18" x2="21" y2="18"></line>
+          </svg>
+        </button>
+        <span class="mobile-title">DevTutor AI</span>
+        <button id="mobile-new-chat" class="mobile-new-btn" title="New Chat">
+          <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+            <line x1="12" y1="5" x2="12" y2="19"></line>
+            <line x1="5" y1="12" x2="19" y2="12"></line>
+          </svg>
+        </button>
+      </header>
+
+      <!-- Messages Area -->
+      <main id="chat-box" class="chat-box">
+        <!-- Empty / Welcome State -->
+        <div id="empty-state" class="empty-state">
+          <div class="welcome-glow"></div>
+          <div class="welcome-avatar">
+            <svg viewBox="0 0 24 24" width="30" height="30" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+              <polyline points="16 18 22 12 16 6"></polyline>
+              <polyline points="8 6 2 12 8 18"></polyline>
+            </svg>
+          </div>
+          <h2>Halo, saya DevTutor AI</h2>
+          <p>Mentor pemrograman web berbasis Google Gemini. Tanyakan apa saja seputar HTML, CSS, JavaScript, Node.js, Express, atau minta bantuan debugging kode error kamu.</p>
+
+          <div class="prompt-grid">
+            <button class="chip-btn" data-prompt="Jelaskan perbedaan let, const, dan var dalam JavaScript disertai contoh kasusnya.">
+              <span class="chip-icon">💡</span>
+              <div>
+                <div class="chip-title">Bedanya let, const, var</div>
+                <div class="chip-sub">Konsep dasar JavaScript</div>
+              </div>
+            </button>
+            <button class="chip-btn" data-prompt="Kenapa saya mendapatkan error 'TypeError: Cannot read properties of undefined' di JavaScript? Bagaimana cara memperbaikinya?">
+              <span class="chip-icon">🐛</span>
+              <div>
+                <div class="chip-title">TypeError: undefined</div>
+                <div class="chip-sub">Debug error umum JS</div>
+              </div>
+            </button>
+            <button class="chip-btn" data-prompt="Bagaimana cara kerja Express middleware dan kapan sebaiknya digunakan? Berikan contoh kodenya.">
+              <span class="chip-icon">🚀</span>
+              <div>
+                <div class="chip-title">Express middleware</div>
+                <div class="chip-sub">Node.js & Express</div>
+              </div>
+            </button>
+            <button class="chip-btn" data-prompt="Apa perbedaan antara Promise, async/await, dan callback di JavaScript? Mana yang sebaiknya digunakan?">
+              <span class="chip-icon">⚡</span>
+              <div>
+                <div class="chip-title">Promise vs async/await</div>
+                <div class="chip-sub">Asynchronous JavaScript</div>
+              </div>
+            </button>
+          </div>
+        </div>
+      </main>
+
+      <!-- Input Area -->
+      <div class="input-area">
+        <form id="chat-form" class="input-form">
+          <div class="input-wrapper">
+            <textarea
+              id="user-input"
+              placeholder="Tanyakan sesuatu atau tempel pesan error kode kamu... (Enter kirim · Shift+Enter baris baru)"
+              autocomplete="off"
+              rows="1"
+              required
+            ></textarea>
+            <button type="submit" id="send-btn" title="Kirim (Enter)">
+              <svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                <line x1="22" y1="2" x2="11" y2="13"></line>
+                <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
+              </svg>
+            </button>
+          </div>
+        </form>
+        <p class="input-hint">
+          DevTutor AI by <strong>Jamaludin</strong> · Universitas Putra Bangsa Kebumen · Hacktiv8 Sesi 3
+        </p>
+      </div>
+
+    </div><!-- /chat-pane -->
+
+    <!-- Sidebar Overlay (mobile) -->
+    <div class="sidebar-overlay" id="sidebar-overlay"></div>
+
+  </div><!-- /layout -->
+
+  <script src="script.js"></script>
+</body>
+</html>
