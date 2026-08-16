@@ -1,9 +1,6 @@
 # DevTutor AI — Asisten & Mentor Pemrograman Web
 
-> **Dibuat oleh**: Jamaludin  
-> **Universitas**: Universitas Putra Bangsa Kebumen  
-> **Program**: AI Productivity and AI API Integration for Developers — Sesi 3  
-> **Penyelenggara**: Hacktiv8
+
 
 DevTutor AI adalah aplikasi chatbot berbasis web yang membantu mahasiswa dan pemula (*learner*) memahami konsep pemrograman web (HTML, CSS, JavaScript, Node.js, Express, REST API) serta membimbing mereka dalam melakukan debugging error secara terstruktur — bukan sekadar memberikan solusi, tetapi juga menjelaskan *mengapa* error terjadi.
 

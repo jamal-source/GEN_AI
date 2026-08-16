@@ -1,0 +1,66 @@
+services:
+  # ── KontenKu AI Web Chatbot (Node.js + Express) ─────────────
+  web:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: kontenku_web
+    restart: always
+    ports:
+      - "3000:3000"
+    env_file:
+      - .env
+    environment:
+      - PORT=3000
+      - NODE_ENV=production
+    depends_on:
+      - n8n
+
+  # ── PostgreSQL Database for n8n & Product Content Engine ────
+  postgres:
+    image: postgres:16-alpine
+    container_name: pce_postgres
+    restart: always
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-pce_admin}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-pce_secure_password_2026}
+      POSTGRES_DB: ${POSTGRES_DB:-product_content_db}
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./product-content-engine/database/init.sql:/docker-entrypoint-initdb.d/init.sql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-pce_admin} -d ${POSTGRES_DB:-product_content_db}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # ── n8n Automation Engine ──────────────────────────────────
+  n8n:
+    image: n8nio/n8n:latest
+    container_name: pce_n8n
+    restart: always
+    ports:
+      - "5678:5678"
+    environment:
+      - N8N_HOST=${N8N_HOST:-localhost}
+      - N8N_PORT=${N8N_PORT:-5678}
+      - N8N_PROTOCOL=${N8N_PROTOCOL:-http}
+      - NODE_ENV=production
+      - GENERIC_TIMEZONE=${GENERIC_TIMEZONE:-Asia/Jakarta}
+      - DB_TYPE=postgresdb
+      - DB_POSTGRESDB_HOST=postgres
+      - DB_POSTGRESDB_PORT=5432
+      - DB_POSTGRESDB_DATABASE=${POSTGRES_DB:-product_content_db}
+      - DB_POSTGRESDB_USER=${POSTGRES_USER:-pce_admin}
+      - DB_POSTGRESDB_PASSWORD=${POSTGRES_PASSWORD:-pce_secure_password_2026}
+    volumes:
+      - n8n_data:/home/node/.n8n
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+volumes:
+  postgres_data:
+  n8n_data:

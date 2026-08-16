@@ -1,0 +1,28 @@
+# Environment Variables
+.env
+*.env
+
+# Credentials & Keys
+credentials/
+*.json
+!config/*.json
+
+# Data & Database Volumes
+n8n_data/
+postgres_data/
+temp/
+*.log
+
+# Python / Virtual Environment
+__pycache__/
+*.py[cod]
+*$py.class
+.venv/
+venv/
+ENV/
+
+# OS / IDE
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/

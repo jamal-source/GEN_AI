@@ -1,235 +1,401 @@
 <!DOCTYPE html>
-<html lang="id">
+<html lang="id" data-theme="light">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>DevTutor AI — Mentor Pemrograman Web</title>
-  <meta name="description" content="AI Chatbot mentor belajar web development & debugging. Oleh Jamaludin, Universitas Putra Bangsa Kebumen." />
-
-  <!-- Fonts -->
+  <title>KontenKu AI — AI Content Creation Workspace UMKM</title>
+  <meta name="description" content="AI Workspace khusus UMKM Indonesia untuk menghasilkan 9 konten visual 1080x1080px, 1 video promosi MP4, dan copywriting e-commerce secara otomatis." />
+  
+  <!-- Fonts & Syntax Highlighting -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500;600&family=Inter:ital,opsz,wght@0,14..32,300;0,14..32,400;0,14..32,500;0,14..32,600;0,14..32,700;1,14..32,400&display=swap" rel="stylesheet">
-
-  <!-- Highlight.js untuk syntax highlighting kode -->
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github-dark.min.css">
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Fira+Code:wght@400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/atom-one-dark.min.css">
   <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js" defer></script>
-
-  <link rel="stylesheet" href="style.css"/>
+  
+  <link rel="stylesheet" href="style.css?v=2.6"/>
 </head>
 <body>
 
-  <div class="layout">
-
-    <!-- ── Sidebar ──────────────────────────────────────── -->
-    <aside class="sidebar">
-      <div class="sidebar-top">
-        <div class="logo">
-          <div class="logo-icon">
-            <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-              <polyline points="16 18 22 12 16 6"></polyline>
-              <polyline points="8 6 2 12 8 18"></polyline>
+  <div class="app-layout">
+    
+    <!-- SIDEBAR (260px) -->
+    <aside class="sidebar" id="sidebar">
+      
+      <div class="sidebar-header">
+        <div class="brand-logo">
+          <div class="brand-icon">
+            <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M12 2L2 7l10 5 10-5-10-5z"/>
+              <path d="M2 17l10 5 10-5"/>
+              <path d="M2 12l10 5 10-5"/>
             </svg>
           </div>
-          <span class="logo-text">DevTutor AI</span>
+          <span class="brand-title">KontenKu <span class="brand-tag">AI</span></span>
         </div>
-
-        <button id="new-chat-btn" class="new-chat-btn">
-          <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-            <line x1="12" y1="5" x2="12" y2="19"></line>
-            <line x1="5" y1="12" x2="19" y2="12"></line>
-          </svg>
-          New Chat
+        <button type="button" id="sidebar-header-toggle" class="btn-icon sidebar-header-btn" title="Tutup Sidebar">
+          <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
         </button>
       </div>
 
-      <div class="sidebar-info">
-        <div class="info-card">
-          <div class="info-card-header">
-            <span class="info-card-dot dot-blue"></span>
-            Model Aktif
-          </div>
-          <div class="info-card-value" id="sidebar-model-label">Gemini 2.5 Flash</div>
-        </div>
-        <div class="info-card">
-          <div class="info-card-header">
-            <span class="info-card-dot dot-green"></span>
-            Status
-          </div>
-          <div class="info-card-value" id="sidebar-status">Online</div>
-        </div>
-        <div class="info-card">
-          <div class="info-card-header">
-            <span class="info-card-dot dot-purple"></span>
-            Pesan Sesi
-          </div>
-          <div class="info-card-value" id="msg-count">0 pesan</div>
+      <!-- Primary Action: New Chat -->
+      <div class="sidebar-action-wrap">
+        <button type="button" id="new-chat-btn" class="btn-new-chat">
+          <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+            <line x1="12" y1="5" x2="12" y2="19"></line>
+            <line x1="5" y1="12" x2="19" y2="12"></line>
+          </svg>
+          <span>Chat Baru</span>
+        </button>
+      </div>
+
+      <!-- Search Input -->
+      <div class="sidebar-search-wrap">
+        <div class="search-box">
+          <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="11" cy="11" r="8"></circle>
+            <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+          </svg>
+          <input type="text" id="history-search" placeholder="Cari percakapan..." autocomplete="off" />
+          <button type="button" id="search-clear" class="search-clear-btn" style="display:none;">&times;</button>
         </div>
       </div>
 
-      <!-- Model Selector -->
-      <div class="model-selector">
-        <p class="model-selector-title">Pilih AI Model</p>
+      <!-- Conversation History Container -->
+      <div class="history-container" id="history-container">
+        <!-- Dynamic grouped items (Hari Ini, Kemarin, 7 Hari Terakhir, Lebih Lama) -->
+        <div id="history-list"></div>
 
-        <label class="model-option" id="option-gemini">
-          <input type="radio" name="ai-provider" value="gemini" checked />
-          <div class="model-option-body">
-            <div class="model-option-top">
-              <span class="model-badge badge-google">Google</span>
-              <span class="model-name">Gemini 2.5 Flash</span>
-            </div>
-            <div class="model-desc">Model utama. Akurat & cepat.</div>
-          </div>
-        </label>
-
-        <label class="model-option" id="option-groq">
-          <input type="radio" name="ai-provider" value="groq" />
-          <div class="model-option-body">
-            <div class="model-option-top">
-              <span class="model-badge badge-groq">Groq</span>
-              <span class="model-name">Llama 3.3 70B</span>
-            </div>
-            <div class="model-desc">Open-source · 14K req/hari gratis</div>
-          </div>
-        </label>
+        <!-- Empty History State -->
+        <div id="history-empty" class="history-empty-state" style="display:none;">
+          <div class="empty-icon">💬</div>
+          <p class="empty-title">Belum ada percakapan</p>
+          <p class="empty-sub">Mulai percakapan pertamamu dengan KontenKu AI.</p>
+        </div>
       </div>
 
-      <div class="sidebar-capabilities">
-        <p class="cap-title">Topik yang bisa ditanyakan</p>
-        <ul class="cap-list">
-          <li>
-            <span class="cap-icon">🧩</span>
-            HTML, CSS, JavaScript
-          </li>
-          <li>
-            <span class="cap-icon">🟢</span>
-            Node.js &amp; Express
-          </li>
-          <li>
-            <span class="cap-icon">🔗</span>
-            REST API &amp; JSON
-          </li>
-          <li>
-            <span class="cap-icon">🐛</span>
-            Debugging kode error
-          </li>
-          <li>
-            <span class="cap-icon">🤖</span>
-            AI API Integration
-          </li>
-        </ul>
+      <!-- Workspace Menu Section -->
+      <div class="sidebar-workspace">
+        <div class="sidebar-section-label">WORKSPACE</div>
+        <nav class="workspace-nav">
+          <button type="button" class="ws-nav-item" onclick="openProductModal(); return false;">
+            <span class="ws-icon">📦</span>
+            <span>Produk Aktif</span>
+          </button>
+          <button type="button" class="ws-nav-item" onclick="quickPrompt('Buat deskripsi Shopee & TikTok untuk produk saya'); return false;">
+            <span class="ws-icon">📝</span>
+            <span>Konten Copywriting</span>
+          </button>
+          <button type="button" class="ws-nav-item" onclick="quickPrompt('Rekomendasikan template visual 1080x1080 untuk produk saya'); return false;">
+            <span class="ws-icon">🎨</span>
+            <span>Template Visual</span>
+          </button>
+          <button type="button" class="ws-nav-item" onclick="quickPrompt('Info syarat legalitas NIB, SPP-IRT, dan Sertifikat Halal UMKM'); return false;">
+            <span class="ws-icon">⚖️</span>
+            <span>Legalitas UMKM</span>
+          </button>
+        </nav>
       </div>
 
+      <!-- Sidebar Footer -->
       <div class="sidebar-footer">
-        <div class="author-info">
-          <div class="author-avatar">J</div>
-          <div>
-            <div class="author-name">Jamaludin</div>
-            <div class="author-univ">Universitas Putra Bangsa Kebumen</div>
+        <div class="pipeline-status-card" id="sidebar-pipeline-card">
+          <div class="pipe-status-row">
+            <span class="pipe-dot" id="pipe-dot"></span>
+            <span class="pipe-text" id="pipe-label">Siap</span>
           </div>
+          <button type="button" id="sidebar-trigger-btn" class="btn-sidebar-trigger" onclick="triggerPipeline(); return false;">
+            <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.5"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg>
+            Jalankan Pipeline
+          </button>
         </div>
       </div>
     </aside>
 
-    <!-- ── Main Chat ─────────────────────────────────────── -->
-    <div class="chat-pane">
+    <!-- MAIN CHAT AREA -->
+    <div class="main-content">
+      
+      <!-- TOP BAR -->
+      <header class="top-bar">
+        <div class="top-left">
+          <button type="button" id="sidebar-toggle" class="btn-icon" title="Toggle Sidebar">
+            <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <line x1="3" y1="12" x2="21" y2="12"></line>
+              <line x1="3" y1="6" x2="21" y2="6"></line>
+              <line x1="3" y1="18" x2="21" y2="18"></line>
+            </svg>
+          </button>
+          
+          <!-- Product Context Selector -->
+          <div class="product-selector-pill" onclick="openProductModal()" title="Klik untuk ganti produk aktif">
+            <span class="pill-icon">📦</span>
+            <span class="pill-label" id="top-product-name">Produk: Umum</span>
+            <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 12 15 18 9"></polyline></svg>
+          </div>
+        </div>
 
-      <!-- Mobile Header (hidden on desktop) -->
-      <header class="mobile-header">
-        <button class="mobile-menu-btn" id="sidebar-toggle" title="Menu">
-          <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <line x1="3" y1="12" x2="21" y2="12"></line>
-            <line x1="3" y1="6" x2="21" y2="6"></line>
-            <line x1="3" y1="18" x2="21" y2="18"></line>
-          </svg>
-        </button>
-        <span class="mobile-title">DevTutor AI</span>
-        <button id="mobile-new-chat" class="mobile-new-btn" title="New Chat">
-          <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-            <line x1="12" y1="5" x2="12" y2="19"></line>
-            <line x1="5" y1="12" x2="19" y2="12"></line>
-          </svg>
-        </button>
+        <div class="top-right">
+          <!-- Compact Model Selector -->
+          <div class="model-dropdown-wrap">
+            <button type="button" id="model-selector-btn" class="model-selector-btn">
+              <span class="model-sparkle">✦</span>
+              <span id="model-selected-label">Gemini 2.0 Flash</span>
+              <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 12 15 18 9"></polyline></svg>
+            </button>
+            <div id="model-menu" class="model-dropdown-menu" style="display:none;">
+              <div class="dropdown-header">Pilih Model AI</div>
+              <label class="model-menu-item">
+                <input type="radio" name="model-choice" value="gemini" checked />
+                <div class="item-text">
+                  <div class="item-title">Gemini 2.0 Flash</div>
+                  <div class="item-desc">Akurat & cepat · Direkomendasikan</div>
+                </div>
+              </label>
+              <label class="model-menu-item">
+                <input type="radio" name="model-choice" value="groq" />
+                <div class="item-text">
+                  <div class="item-title">Llama 3.3 70B (Groq)</div>
+                  <div class="item-desc">Open Source · Gratis & cepat</div>
+                </div>
+              </label>
+            </div>
+          </div>
+
+          <!-- Theme Toggle -->
+          <button type="button" id="theme-toggle-btn" class="btn-icon" title="Ganti Mode Gelap/Terang">
+            <span id="theme-icon">🌙</span>
+          </button>
+
+          <!-- Profil Pembuat / About Developer Button -->
+          <button type="button" id="about-btn" class="btn-icon" title="Profil Pembuat (Jamaludin)">
+            <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
+          </button>
+        </div>
       </header>
 
-      <!-- Messages Area -->
+      <!-- CHAT MESSAGES AREA -->
       <main id="chat-box" class="chat-box">
-        <!-- Empty / Welcome State -->
+        
+        <!-- EMPTY STATE -->
         <div id="empty-state" class="empty-state">
-          <div class="welcome-glow"></div>
-          <div class="welcome-avatar">
-            <svg viewBox="0 0 24 24" width="30" height="30" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
-              <polyline points="16 18 22 12 16 6"></polyline>
-              <polyline points="8 6 2 12 8 18"></polyline>
-            </svg>
+          <div class="empty-hero">
+            <div class="hero-logo">
+              <svg viewBox="0 0 24 24" width="36" height="36" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M12 2L2 7l10 5 10-5-10-5z"/>
+                <path d="M2 17l10 5 10-5"/>
+                <path d="M2 12l10 5 10-5"/>
+              </svg>
+            </div>
+            <h1 class="hero-title">KontenKu AI</h1>
+            <p class="hero-sub">Asisten AI untuk membuat dan mengembangkan konten produk UMKM Indonesia.</p>
           </div>
-          <h2>Halo, saya DevTutor AI</h2>
-          <p>Mentor pemrograman web berbasis Google Gemini. Tanyakan apa saja seputar HTML, CSS, JavaScript, Node.js, Express, atau minta bantuan debugging kode error kamu.</p>
 
-          <div class="prompt-grid">
-            <button class="chip-btn" data-prompt="Jelaskan perbedaan let, const, dan var dalam JavaScript disertai contoh kasusnya.">
-              <span class="chip-icon">💡</span>
-              <div>
-                <div class="chip-title">Bedanya let, const, var</div>
-                <div class="chip-sub">Konsep dasar JavaScript</div>
+          <div class="suggestion-grid">
+            <button type="button" class="sug-card" onclick="quickPrompt('Buatkan paket konten produk lengkap untuk UMKM saya'); return false;">
+              <div class="sug-icon">📦</div>
+              <div class="sug-text">
+                <div class="sug-title">Buat konten produk</div>
+                <div class="sug-desc">Panduan & paket 9 visual + 1 video</div>
               </div>
             </button>
-            <button class="chip-btn" data-prompt="Kenapa saya mendapatkan error 'TypeError: Cannot read properties of undefined' di JavaScript? Bagaimana cara memperbaikinya?">
-              <span class="chip-icon">🐛</span>
-              <div>
-                <div class="chip-title">TypeError: undefined</div>
-                <div class="chip-sub">Debug error umum JS</div>
+            <button type="button" class="sug-card" onclick="quickPrompt('Buat deskripsi jualan Shopee & TikTok Shop yang menarik pembeli'); return false;">
+              <div class="sug-icon">✍️</div>
+              <div class="sug-text">
+                <div class="sug-title">Buat deskripsi Shopee</div>
+                <div class="sug-desc">Copywriting persuasif & ber-SEO</div>
               </div>
             </button>
-            <button class="chip-btn" data-prompt="Bagaimana cara kerja Express middleware dan kapan sebaiknya digunakan? Berikan contoh kodenya.">
-              <span class="chip-icon">🚀</span>
-              <div>
-                <div class="chip-title">Express middleware</div>
-                <div class="chip-sub">Node.js & Express</div>
+            <button type="button" class="sug-card" onclick="quickPrompt('Buat ide konsep video promosi 15 detik untuk TikTok'); return false;">
+              <div class="sug-icon">🎬</div>
+              <div class="sug-text">
+                <div class="sug-title">Buat konsep TikTok</div>
+                <div class="sug-desc">Hook, alur, & copywriting video</div>
               </div>
             </button>
-            <button class="chip-btn" data-prompt="Apa perbedaan antara Promise, async/await, dan callback di JavaScript? Mana yang sebaiknya digunakan?">
-              <span class="chip-icon">⚡</span>
-              <div>
-                <div class="chip-title">Promise vs async/await</div>
-                <div class="chip-sub">Asynchronous JavaScript</div>
+            <button type="button" class="sug-card" onclick="quickPrompt('Bantu analisis keunggulan & potensi pasar produk UMKM saya'); return false;">
+              <div class="sug-icon">📊</div>
+              <div class="sug-text">
+                <div class="sug-title">Analisis produk saya</div>
+                <div class="sug-desc">Evaluasi nilai jual & strategi branding</div>
               </div>
             </button>
           </div>
         </div>
+
       </main>
 
-      <!-- Input Area -->
-      <div class="input-area">
-        <form id="chat-form" class="input-form">
-          <div class="input-wrapper">
+      <!-- STICKY CHAT COMPOSER -->
+      <div class="composer-container">
+        
+        <!-- Pipeline Banner (Auto triggers when product data ready) -->
+        <div id="pipeline-banner" class="pipeline-banner" style="display:none;">
+          <div class="banner-left">
+            <span class="banner-icon">✨</span>
+            <div class="banner-text">
+              <div class="banner-title">Data Produk Siap Diproses!</div>
+              <div class="banner-sub">Hasikan 9 gambar visual PNG (1080x1080) + 1 video MP4 promosi</div>
+            </div>
+          </div>
+          <button type="button" class="btn-banner-trigger" onclick="triggerPipeline(); return false;">
+            <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg>
+            Buat Konten Sekarang
+          </button>
+        </div>
+
+        <form id="chat-form" class="composer-card" action="javascript:void(0);">
+          <div class="composer-input-row">
             <textarea
               id="user-input"
-              placeholder="Tanyakan sesuatu atau tempel pesan error kode kamu... (Enter kirim · Shift+Enter baris baru)"
-              autocomplete="off"
+              placeholder="Tulis pesan... (Enter kirim · Shift+Enter baris baru)"
               rows="1"
-              required
             ></textarea>
-            <button type="submit" id="send-btn" title="Kirim (Enter)">
-              <svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-                <line x1="22" y1="2" x2="11" y2="13"></line>
-                <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
-              </svg>
-            </button>
+          </div>
+
+          <div class="composer-toolbar">
+            <div class="toolbar-left">
+              <button type="button" class="tool-btn" title="Opsi Tambahan" onclick="quickPrompt('Bantu saya membuat konten baru'); return false;">
+                <span>＋</span>
+              </button>
+              <button type="button" class="tool-btn" title="Lampirkan File" onclick="alert('Lampirkan teks atau data produk langsung di kotak pesan.'); return false;">
+                <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"></path></svg>
+              </button>
+              <button type="button" class="tool-btn" title="Upload Foto Produk" onclick="openProductModal(); return false;">
+                <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><circle cx="8.5" cy="8.5" r="1.5"></circle><polyline points="21 15 16 10 5 21"></polyline></svg>
+              </button>
+              
+              <div class="composer-active-product" onclick="openProductModal()">
+                <span id="composer-product-label">📦 produk: Umum</span>
+              </div>
+            </div>
+
+            <div class="toolbar-right">
+              <button type="submit" id="send-btn" class="btn-send" title="Kirim Pesan">
+                <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                  <line x1="12" y1="19" x2="12" y2="5"></line>
+                  <polyline points="5 12 12 5 19 12"></polyline>
+                </svg>
+              </button>
+            </div>
           </div>
         </form>
-        <p class="input-hint">
-          DevTutor AI by <strong>Jamaludin</strong> · Universitas Putra Bangsa Kebumen · Hacktiv8 Sesi 3
-        </p>
+
+        <p class="composer-footnote">KontenKu AI — Asisten konten UMKM Indonesia 🇮🇩</p>
       </div>
 
-    </div><!-- /chat-pane -->
+    </div>
 
-    <!-- Sidebar Overlay (mobile) -->
-    <div class="sidebar-overlay" id="sidebar-overlay"></div>
+    <!-- Overlay for mobile sidebar -->
+    <div id="sidebar-overlay" class="sidebar-overlay"></div>
 
-  </div><!-- /layout -->
+  </div>
 
-  <script src="script.js"></script>
+  <!-- MODAL: Lightbox Image Preview -->
+  <div id="image-modal" class="modal-overlay" style="display:none;" onclick="closeImageModal()">
+    <div class="modal-card modal-image-card" onclick="event.stopPropagation()">
+      <button type="button" class="modal-close-btn" onclick="closeImageModal(); return false;">&times;</button>
+      <div class="modal-img-frame">
+        <img id="modal-img" src="" alt="Preview Asset" />
+      </div>
+      <div class="modal-details">
+        <h3 id="modal-title">Visual Asset PNG</h3>
+        <p id="modal-desc">Dimensi: 1080 x 1080 px • Format PNG High Resolution</p>
+        <a id="modal-download-btn" href="" download class="btn-primary-action">
+          ⬇️ Download Asset PNG
+        </a>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL: Confirmation Delete Conversation -->
+  <div id="delete-modal" class="modal-overlay" style="display:none;">
+    <div class="modal-card modal-confirm-card" onclick="event.stopPropagation()">
+      <div class="confirm-icon">⚠️</div>
+      <h3 class="confirm-title">Hapus percakapan?</h3>
+      <p class="confirm-desc">Percakapan ini akan dihapus secara permanen. Tindakan ini tidak dapat dibatalkan.</p>
+      <div class="confirm-actions">
+        <button type="button" class="btn-secondary" onclick="closeDeleteModal(); return false;">Batal</button>
+        <button type="button" class="btn-danger" id="confirm-delete-btn">Hapus Permanen</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL: Product Context Switcher & Management -->
+  <div id="product-modal" class="modal-overlay" style="display:none;">
+    <div class="modal-card modal-product-card" onclick="event.stopPropagation()">
+      <div class="modal-header">
+        <h3>📦 Kelola & Pilih Produk Aktif</h3>
+        <button type="button" class="modal-close-btn" onclick="closeProductModal(); return false;">&times;</button>
+      </div>
+      <div class="modal-body">
+        <p class="modal-help-text">Pilih atau tambahkan info produk UMKM Anda agar KontenKu AI memberikan hasil yang sangat spesifik dan faktual.</p>
+
+        <div class="form-group">
+          <label for="input-product-name">Nama Brand / Usaha</label>
+          <input type="text" id="input-product-name" placeholder="Contoh: Ada Zamal, Dapur Bu Ani, Kopi Nusantara" />
+        </div>
+
+        <div class="form-group">
+          <label for="input-variant-name">Nama Varian Produk</label>
+          <input type="text" id="input-variant-name" placeholder="Contoh: Singkong Coklat Lumer, Sambal Bawang 150g" />
+        </div>
+
+        <div class="form-group">
+          <label for="input-legalities">Info Legalitas (NIB / SPP-IRT / Halal)</label>
+          <input type="text" id="input-legalities" placeholder="Contoh: P-IRT: 2093171010123-26, NIB: 1234567890" />
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn-secondary" onclick="closeProductModal(); return false;">Batal</button>
+        <button type="button" class="btn-primary-action" onclick="saveActiveProduct(); return false;">Simpan Produk Aktif</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL: Profil Pembuat / About Developer -->
+  <div id="about-modal" class="modal-overlay" style="display:none;" onclick="closeAboutModal()">
+    <div class="modal-card modal-about-card" onclick="event.stopPropagation()">
+      <div class="modal-header">
+        <h3>👨‍💻 Profil Pembuat Aplikasi</h3>
+        <button type="button" class="modal-close-btn" onclick="closeAboutModal(); return false;">&times;</button>
+      </div>
+      <div class="modal-body">
+        <div class="developer-profile">
+          <div class="dev-avatar">👨‍💻</div>
+          <div class="dev-info">
+            <h2 class="dev-name">Jamaludin</h2>
+            <p class="dev-role">Mahasiswa S1 Ilmu Komputer</p>
+            <p class="dev-univ">🎓 <strong>Universitas Putra Bangsa Kebumen</strong></p>
+          </div>
+        </div>
+
+        <div class="dev-badge-box">
+          <div class="dev-badge">🚀 Program AI Productivity & AI API Integration for Developers</div>
+          <div class="dev-badge">🇮🇩 Hacktiv8 — Final Project Sesi 3</div>
+        </div>
+
+        <div class="dev-desc-box">
+          <h4>💡 Tentang KontenKu AI</h4>
+          <p>KontenKu AI adalah <strong>AI Content Creation Workspace</strong> khusus UMKM Indonesia untuk membantu pemilik usaha kecil dan menengah menghasilkan 9 konten visual (PNG 1080x1080px), 1 video promosi MP4, dan copywriting jualan e-commerce (Shopee, TikTok, Instagram) secara otomatis dan faktual.</p>
+        </div>
+
+        <div class="dev-stack-box">
+          <h4>🛠️ Tech Stack & Model AI</h4>
+          <div class="stack-tags">
+            <span class="stag">Google Gemini 2.0 Flash</span>
+            <span class="stag">Groq Llama 3.3 70B</span>
+            <span class="stag">Node.js Express</span>
+            <span class="stag">Python Render Engine</span>
+            <span class="stag">n8n Orchestrator</span>
+            <span class="stag">PostgreSQL / SQLite</span>
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn-primary-action" onclick="closeAboutModal(); return false;">Tutup Profil</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="script.js?v=2.6"></script>
 </body>
 </html>

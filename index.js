@@ -13,23 +13,22 @@ const PORT = process.env.PORT || 3000;
 const SYSTEM_PROMPT = `\
 Kamu adalah KontenKu AI, asisten pintar khusus untuk pelaku UMKM Indonesia.
 
-Tujuanmu adalah membantu pemilik usaha kecil dan menengah membuat konten produk \
+Tujuanmu adalah membantu pemilik usaha kecil dan menengah membuat paket konten produk \
 yang menarik, faktual, dan siap dipasarkan di Shopee, TikTok Shop, atau Instagram.
 
 Cara kerjamu:
-1. Sapa dengan ramah dan tanyakan nama brand/usaha mereka.
-2. Panduan langkah demi langkah: kumpulkan info produk (nama varian, bahan, berat, \
+1. Sapa dengan ramah dan tanyakan nama brand/usaha serta produk mereka.
+2. Panduan langkah demi langkah: kumpulkan info produk (nama varian, bahan/komposisi, berat/netto, \
    cara penyajian, cara penyimpanan, nomor legalitas NIB/SPP-IRT/Halal).
-3. Setelah data lengkap, ringkas dan konfirmasi ulang ke pengguna.
-4. Informasikan bahwa sistem akan memproses pembuatan 9 konten visual + 1 video promosi.
-5. Jika pengguna sudah konfirmasi, katakan kamu sedang memproses via pipeline otomasi.
+3. Setelah data lengkap, ringkas info produk tersebut dan konfirmasikan ke pengguna.
+4. Tegaskan bahwa sistem KontenKu AI secara otomatis memproses dan merender 9 GAMBAR VISUAL (PNG 1080x1080) + 1 VIDEO PROMOSI (MP4) siap pakai.
+5. Arahkan pengguna untuk menekan tombol "Buat Konten Sekarang" atau "Jalankan Pipeline" di layar untuk memulai generasi file gambar & video.
 
-Aturan penting:
-- Gunakan Bahasa Indonesia yang hangat, santai, dan mudah dipahami pelaku UMKM.
-- JANGAN mengarang data faktual — jika pengguna belum memberikan NIB atau bahan, tanyakan.
-- Fokus pada topik: produk UMKM, konten e-commerce, legalitas usaha, branding sederhana.
-- Untuk pertanyaan di luar topik bisnis UMKM, tolak dengan sopan dan arahkan kembali.
-- Gunakan emoji secukupnya agar terasa lebih personal dan tidak kaku.`;
+ATURAN SANGAT PENTING:
+- JANGAN PERNAH katakan kamu tidak bisa membuat gambar atau video! Sistem aplikasi ini memiliki mesin render otomatis (Python Engine) yang akan membuat 9 file PNG 1080x1080px dan 1 file video MP4 asli.
+- Gunakan Bahasa Indonesia yang hangat, ramah, santai, dan penuh semangat mendukung UMKM.
+- JANGAN mengarang data faktual — jika pengguna belum memberikan NIB atau bahan, tanyakan dengan sopan.
+- Gunakan emoji secukupnya agar terasa personal dan menyenangkan.`;
 
 const PROVIDERS = {
   gemini: { model: 'gemini-2.5-flash', label: 'Gemini 2.5 Flash' },
@@ -55,13 +54,65 @@ function getGroqClient() {
 
 app.use(cors());
 app.use(express.json());
-app.use(express.static(path.join(__dirname, 'public')));
+app.use(express.static(path.join(__dirname, 'public'), {
+  etag: false,
+  lastModified: false,
+  setHeaders: (res) => {
+    res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
+    res.setHeader('Pragma', 'no-cache');
+    res.setHeader('Expires', '0');
+  }
+}));
+app.use('/output', express.static(path.join(__dirname, 'product-content-engine', 'output')));
 
 app.get('/api/providers', (_req, res) => {
   res.json({
     gemini: { ...PROVIDERS.gemini, available: !!process.env.GEMINI_API_KEY?.trim() },
     groq: { ...PROVIDERS.groq, available: !!process.env.GROQ_API_KEY?.trim() }
   });
+});
+
+app.post('/api/title', async (req, res) => {
+  const text = req.body.text || '';
+  if (!text) return res.json({ title: 'Percakapan Baru' });
+
+  const prompt = `Buatkan 1 judul percakapan singkat (maksimal 4 kata atau 35 karakter) tanpa tanda petik untuk topik awal berikut: "${text.substring(0, 150)}"`;
+
+  // Try Gemini first
+  try {
+    const client = getGeminiClient();
+    if (client) {
+      const response = await client.models.generateContent({
+        model: PROVIDERS.gemini.model,
+        contents: [{ role: 'user', parts: [{ text: prompt }] }]
+      });
+      if (response?.text) {
+        const title = response.text.trim().replace(/^["']|["']$/g, '').substring(0, 40);
+        return res.json({ title });
+      }
+    }
+  } catch (err) {
+    // Try Groq fallback for title
+    try {
+      const groqClient = getGroqClient();
+      if (groqClient) {
+        const groqRes = await groqClient.chat.completions.create({
+          model: PROVIDERS.groq.model,
+          messages: [{ role: 'user', content: prompt }],
+          max_tokens: 30,
+          temperature: 0.5
+        });
+        const groqTitle = (groqRes.choices[0]?.message?.content || '').trim().replace(/^["']|["']$/g, '').substring(0, 40);
+        if (groqTitle) return res.json({ title: groqTitle });
+      }
+    } catch {}
+  }
+
+  // Smart rule fallback
+  let clean = text.replace(/^(saya|bantu|tolong|halo|ingat|saya punya|buatkan|bagaimana|cara)\s+/i, '').trim();
+  clean = clean.split('\n')[0].substring(0, 30);
+  const fallbackTitle = clean ? clean.charAt(0).toUpperCase() + clean.slice(1) : 'Percakapan Baru';
+  return res.json({ title: fallbackTitle });
 });
 
 app.post('/api/chat', async (req, res) => {
@@ -73,38 +124,99 @@ app.post('/api/chat', async (req, res) => {
   }
 
   try {
-    const text = provider === 'groq'
-      ? await callGroq(conversation)
-      : await callGemini(conversation);
+    let text;
+    let actualProvider = provider;
 
-    return res.json({ result: text, provider });
+    if (provider === 'gemini') {
+      try {
+        text = await callGemini(conversation);
+      } catch (geminiErr) {
+        if (process.env.GROQ_API_KEY?.trim()) {
+          console.warn('[chat] Gemini error (' + (geminiErr?.message || geminiErr) + '), falling back to Groq Llama 3.3 70B...');
+          try {
+            text = await callGroq(conversation);
+            actualProvider = 'groq (fallback)';
+          } catch (groqErr) {
+            throw geminiErr;
+          }
+        } else {
+          throw geminiErr;
+        }
+      }
+    } else {
+      text = await callGroq(conversation);
+    }
+
+    return res.json({ result: text, provider: actualProvider });
   } catch (err) {
-    console.error(`[chat] ${provider}:`, err.message);
-    return res.status(500).json({ error: err.message });
+    console.error(`[chat] ${provider}:`, err?.message || err);
+    return res.status(500).json({ error: err?.message || 'Terjadi kesalahan pada server AI.' });
   }
 });
 
 app.post('/api/trigger-pipeline', async (req, res) => {
-  const webhookUrl = process.env.N8N_WEBHOOK_URL?.trim();
+  const conversation = req.body.conversation || [];
+  const productCtx = req.body.product_context || {};
 
-  if (!webhookUrl) {
-    return res.status(503).json({
-      error: 'Pipeline otomasi belum terhubung. Tambahkan N8N_WEBHOOK_URL di file .env.'
-    });
+  // Extract brand name, variant, and text from product context or conversation history
+  let brandName = productCtx.brand || '';
+  let variantName = productCtx.variant || '';
+  let infoText = productCtx.legalities ? `Legalitas: ${productCtx.legalities} ` : '';
+
+  for (const msg of conversation) {
+    const text = msg.text || '';
+    infoText += text + ' ';
+    if (!brandName && (text.toLowerCase().includes('brand') || text.toLowerCase().includes('merek') || text.toLowerCase().includes('usaha'))) {
+      const parts = text.split(/brand|merek|usaha/i);
+      if (parts.length > 1) {
+        brandName = parts[1].replace(/[:=]/g, '').trim().split('\n')[0].substring(0, 30);
+      }
+    }
+    if (!variantName && (text.toLowerCase().includes('varian') || text.toLowerCase().includes('produk'))) {
+      const parts = text.split(/varian|produk/i);
+      if (parts.length > 1) {
+        variantName = parts[1].replace(/[:=]/g, '').trim().split('\n')[0].substring(0, 30);
+      }
+    }
   }
 
-  try {
-    const response = await fetch(webhookUrl, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(req.body)
-    });
+  const payload = {
+    brand_name: (brandName || 'KontenKu UMKM').trim(),
+    variant_name: (variantName || 'Produk Herbal').trim(),
+    info: infoText.substring(0, 200)
+  };
 
-    const result = await response.json();
-    return res.json({ success: true, pipeline: result });
+  const scriptPath = path.join(__dirname, 'product-content-engine', 'run_chat_pipeline.py');
+  const tempInputPath = path.join(__dirname, 'product-content-engine', 'temp', `req_${Date.now()}.json`);
+
+  try {
+    const fs = await import('fs/promises');
+    await fs.mkdir(path.dirname(tempInputPath), { recursive: true });
+    await fs.writeFile(tempInputPath, JSON.stringify(payload), 'utf8');
+
+    const { exec } = await import('child_process');
+    const util = await import('util');
+    const execPromise = util.promisify(exec);
+
+    const { stdout } = await execPromise(`python "${scriptPath}" "${tempInputPath}"`);
+    await fs.unlink(tempInputPath).catch(() => {});
+
+    let jsonResult;
+    try {
+      const jsonStart = stdout.indexOf('{');
+      if (jsonStart !== -1) {
+        jsonResult = JSON.parse(stdout.substring(jsonStart));
+      } else {
+        jsonResult = { status: 'SUCCESS', message: stdout };
+      }
+    } catch (e) {
+      jsonResult = { status: 'SUCCESS', message: stdout };
+    }
+
+    return res.json({ success: true, pipeline: jsonResult });
   } catch (err) {
-    console.error('[pipeline]', err.message);
-    return res.status(500).json({ error: 'Gagal menghubungi pipeline n8n: ' + err.message });
+    console.error('[pipeline error]', err);
+    return res.status(500).json({ error: 'Gagal memproses pipeline Python: ' + (err?.message || err) });
   }
 });
 
@@ -157,7 +269,7 @@ async function callGroq(conversation) {
   return text;
 }
 
-app.listen(PORT, () => {
+const server = app.listen(PORT, () => {
   const geminiReady = !!process.env.GEMINI_API_KEY?.trim();
   const groqReady = !!process.env.GROQ_API_KEY?.trim();
   const n8nReady = !!process.env.N8N_WEBHOOK_URL?.trim();
@@ -166,4 +278,13 @@ app.listen(PORT, () => {
   console.log(`  Gemini   : ${geminiReady ? '✓' : '✗ (isi GEMINI_API_KEY)'}`);
   console.log(`  Groq     : ${groqReady ? '✓' : '✗ (opsional)'}`);
   console.log(`  n8n Hook : ${n8nReady ? '✓' : '✗ (isi N8N_WEBHOOK_URL untuk pipeline penuh)'}`);
+});
+
+server.on('error', (err) => {
+  if (err.code === 'EADDRINUSE') {
+    console.error(`\n❌ ERROR: Port ${PORT} sedang digunakan oleh proses lain.`);
+    console.error(`   Tutup aplikasi/terminal yang menggunakan port ${PORT} lalu jalankan 'npm start' kembali.\n`);
+  } else {
+    console.error('Server error:', err);
+  }
 });
