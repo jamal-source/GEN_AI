@@ -1,17 +1,14 @@
-# DevTutor AI — Asisten & Mentor Pemrograman Web
+# KontenKu AI — AI Content Creation Workspace UMKM
 
-> **Dibuat oleh**: Jamaludin  
-> **Universitas**: Universitas Putra Bangsa Kebumen  
-> **Program**: AI Productivity and AI API Integration for Developers — Sesi 3  
-> **Penyelenggara**: Hacktiv8
 
-DevTutor AI adalah aplikasi chatbot berbasis web yang membantu mahasiswa dan pemula (*learner*) memahami konsep pemrograman web (HTML, CSS, JavaScript, Node.js, Express, REST API) serta membimbing mereka dalam melakukan debugging error secara terstruktur — bukan sekadar memberikan solusi, tetapi juga menjelaskan *mengapa* error terjadi.
+
+KontenKu AI adalah aplikasi chatbot berbasis web yang membantu mahasiswa dan pemula (*learner*) memahami konsep pemrograman web (HTML, CSS, JavaScript, Node.js, Express, REST API) serta membimbing mereka dalam melakukan debugging error secara terstruktur — bukan sekadar memberikan solusi, tetapi juga menjelaskan *mengapa* error terjadi.
 
 ---
 
 ## 🎯 Use Case & Persona
 
-* **Nama Bot**: DevTutor AI
+* **Nama Bot**: KontenKu AI
 * **Persona**: Mentor Pemrograman Web Senior yang sabar, ramah, dan komunikatif.
 * **Target Pengguna**: Mahasiswa, pemula web development, dan peserta bootcamp.
 * **Tujuan Utama**: Membantu pengguna memahami konsep dasar pemrograman dan membimbing pemecahan masalah (debugging) secara bertahap tanpa sekadar memberikan perbaikan kode tanpa pemahaman.
@@ -136,4 +133,7 @@ Menerima array riwayat percakapan dan pilihan provider (`gemini` atau `groq`).
 ---
 
 ## 📄 Lisensi
-Proyek ini dibuat oleh **Jamaludin** (Universitas Putra Bangsa Kebumen) untuk tugas Final Project Sesi 3 Hacktiv8.
+Dibuat oleh: Jamaludin  
+Universitas: Universitas Putra Bangsa Kebumen  
+Program: AI Productivity and AI API Integration for Developers — Sesi 3  
+Penyelenggara: Hacktiv8
