@@ -1,4 +1,4 @@
-# DevTutor AI — Asisten & Mentor Pemrograman Web
+# KontenKu AI — AI Content Creation Workspace UMKM
 
 
 
@@ -8,7 +8,7 @@ DevTutor AI adalah aplikasi chatbot berbasis web yang membantu mahasiswa dan pem
 
 ## 🎯 Use Case & Persona
 
-* **Nama Bot**: DevTutor AI
+* **Nama Bot**: KontenKu AI
 * **Persona**: Mentor Pemrograman Web Senior yang sabar, ramah, dan komunikatif.
 * **Target Pengguna**: Mahasiswa, pemula web development, dan peserta bootcamp.
 * **Tujuan Utama**: Membantu pengguna memahami konsep dasar pemrograman dan membimbing pemecahan masalah (debugging) secara bertahap tanpa sekadar memberikan perbaikan kode tanpa pemahaman.
