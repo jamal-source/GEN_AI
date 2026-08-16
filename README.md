@@ -133,4 +133,7 @@ Menerima array riwayat percakapan dan pilihan provider (`gemini` atau `groq`).
 ---
 
 ## 📄 Lisensi
-Proyek ini dibuat oleh **Jamaludin** (Universitas Putra Bangsa Kebumen) untuk tugas Final Project Sesi 3 Hacktiv8.
+Dibuat oleh: Jamaludin  
+Universitas: Universitas Putra Bangsa Kebumen  
+Program: AI Productivity and AI API Integration for Developers — Sesi 3  
+Penyelenggara: Hacktiv8
