@@ -1,9 +1,11 @@
 /node_modules
 .env
 .env.*
+!.env.example
 .env_*
 .history
 scratch/
 __MACOSX/
 package-lock.json
+
 
