@@ -160,7 +160,8 @@
       try {
         const raw = localStorage.getItem(STORAGE_KEY);
         const list = raw ? JSON.parse(raw) : [];
-        const valid = list.filter(c => c.messages && c.messages.length > 0);
+        if (!Array.isArray(list)) return [];
+        const valid = list.filter(c => c && typeof c === 'object' && Array.isArray(c.messages) && c.messages.length > 0);
         if (valid.length !== list.length) {
           localStorage.setItem(STORAGE_KEY, JSON.stringify(valid));
         }
@@ -172,15 +173,15 @@
 
     _save() {
       try {
-        const valid = this.conversations.filter(c => c.messages && c.messages.length > 0);
+        const valid = this.conversations.filter(c => c && typeof c === 'object' && Array.isArray(c.messages) && c.messages.length > 0);
         localStorage.setItem(STORAGE_KEY, JSON.stringify(valid));
       } catch {}
     }
 
     getAll() {
       return [...this.conversations]
-        .filter(c => c.messages && c.messages.length > 0)
-        .sort((a, b) => new Date(b.updated_at) - new Date(a.updated_at));
+        .filter(c => c && Array.isArray(c.messages) && c.messages.length > 0)
+        .sort((a, b) => new Date(b.updated_at || 0) - new Date(a.updated_at || 0));
     }
 
     get(id) {
@@ -231,13 +232,18 @@
     }
 
     search(query) {
-      const all = this.getAll().filter(c => !c.archived);
+      const all = this.getAll().filter(c => c && !c.archived);
       if (!query || !query.trim()) return all;
       const q = query.toLowerCase().trim();
-      return all.filter(c =>
-        c.title.toLowerCase().includes(q) ||
-        c.messages.some(m => m.text.toLowerCase().includes(q))
-      );
+      return all.filter(c => {
+        const title = typeof c.title === 'string' ? c.title.toLowerCase() : '';
+        const matchTitle = title.includes(q);
+        const matchMessages = Array.isArray(c.messages) && c.messages.some(m => {
+          const text = (m && typeof m.text === 'string') ? m.text.toLowerCase() : '';
+          return text.includes(q);
+        });
+        return matchTitle || matchMessages;
+      });
     }
 
     grouped(list) {
@@ -396,7 +402,13 @@
   function getActiveProductContext() {
     try {
       const raw = localStorage.getItem(PRODUCT_KEY);
-      return raw ? JSON.parse(raw) : { brand: '', variant: '', legalities: '' };
+      if (!raw) return { brand: '', variant: '', legalities: '' };
+      const parsed = JSON.parse(raw);
+      return (parsed && typeof parsed === 'object') ? {
+        brand:      typeof parsed.brand === 'string' ? parsed.brand : '',
+        variant:    typeof parsed.variant === 'string' ? parsed.variant : '',
+        legalities: typeof parsed.legalities === 'string' ? parsed.legalities : ''
+      } : { brand: '', variant: '', legalities: '' };
     } catch {
       return { brand: '', variant: '', legalities: '' };
     }
@@ -608,9 +620,13 @@
     hideEmpty();
     if (chatBox) {
       chatBox.innerHTML = '';
-      conv.messages.forEach(msg => {
-        chatBox.appendChild(buildRow(msg.role, msg.text, msg.created_at, msg.metadata));
-      });
+      if (Array.isArray(conv.messages)) {
+        conv.messages.forEach(msg => {
+          if (msg) {
+            chatBox.appendChild(buildRow(msg.role, msg.text || '', msg.created_at, msg.metadata));
+          }
+        });
+      }
     }
 
     renderHistory();
@@ -946,6 +962,7 @@
 
   /* ── MARKDOWN RENDERER ──────────────────────────────────────── */
   function renderMd(raw) {
+    if (typeof raw !== 'string') return '';
     const blocks = [];
     let text = raw.replace(/```(\w*)\n?([\s\S]*?)```/g, (_, lang, code) => {
       const l = lang || 'text';
