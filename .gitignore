@@ -1,3 +1,9 @@
 /node_modules
 .env
+.env.*
+.env_*
+.history
+scratch/
+__MACOSX/
 package-lock.json
+
