@@ -673,6 +673,46 @@
     newChatBtn.addEventListener('click', window.handleNewChat);
   }
 
+  function showToast(message) {
+    let toast = document.getElementById('app-toast-alert');
+    if (!toast) {
+      toast = document.createElement('div');
+      toast.id = 'app-toast-alert';
+      toast.style.cssText = `
+        position: fixed;
+        top: 16px;
+        left: 50%;
+        transform: translateX(-50%);
+        z-index: 99999;
+        background: #1e293b;
+        color: #f8fafc;
+        border: 1px solid #3b82f6;
+        box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.4);
+        padding: 10px 18px;
+        border-radius: 999px;
+        font-size: 13px;
+        font-weight: 600;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        opacity: 0;
+        pointer-events: none;
+      `;
+      document.body.appendChild(toast);
+    }
+
+    toast.textContent = message;
+    toast.style.opacity = '1';
+    toast.style.transform = 'translateX(-50%) translateY(0)';
+
+    clearTimeout(window._toastTimer);
+    window._toastTimer = setTimeout(() => {
+      toast.style.opacity = '0';
+      toast.style.transform = 'translateX(-50%) translateY(-10px)';
+    }, 4000);
+  }
+
   function formatError(rawErr) {
     if (!rawErr) return 'Terjadi kesalahan tidak dikenal pada server.';
     const msg = typeof rawErr === 'string' ? rawErr : (rawErr.error || rawErr.message || JSON.stringify(rawErr));
@@ -690,11 +730,38 @@
     return msg;
   }
 
+  // Page Lifecycle & Visibility Safety: Unfreeze input/button if page is reopened or restored
+  function ensureUnlockedState() {
+    if (isGenerating && window._generatingStartTime && (Date.now() - window._generatingStartTime > 20000)) {
+      setLoading(false);
+    } else if (!isGenerating) {
+      setLoading(false);
+    }
+  }
+
+  window.addEventListener('pageshow', ensureUnlockedState);
+  window.addEventListener('focus', ensureUnlockedState);
+  document.addEventListener('visibilitychange', () => {
+    if (document.visibilityState === 'visible') ensureUnlockedState();
+  });
+
   /* ── CHAT FORM SUBMISSION ───────────────────────────────────── */
   window.handleChatSubmit = async function () {
     const text = input ? input.value.trim() : '';
-    if (!text || isGenerating) return;
 
+    // Watchdog check: force unfreeze if stuck in generating for >20s
+    if (isGenerating) {
+      if (window._generatingStartTime && (Date.now() - window._generatingStartTime > 20000)) {
+        console.warn('Watchdog: Force resetting stuck loading state');
+        setLoading(false);
+      } else {
+        return;
+      }
+    }
+
+    if (!text) return;
+
+    window._generatingStartTime = Date.now();
     hideEmpty();
 
     let isFirst = false;
@@ -718,11 +785,15 @@
     const conv    = svc.get(activeConvId);
     const history = conv ? conv.messages.map(m => ({ role: m.role, text: m.text })) : [];
 
+    const controller = new AbortController();
+    const timeoutId  = setTimeout(() => controller.abort(), 25000); // 25s max timeout
+
     try {
       const res = await fetch('/api/chat', {
         method:  'POST',
         headers: { 'Content-Type': 'application/json' },
-        body:    JSON.stringify({ conversation: history, provider: selectedProvider })
+        body:    JSON.stringify({ conversation: history, provider: selectedProvider }),
+        signal:  controller.signal
       });
       const data = await res.json();
 
@@ -730,6 +801,24 @@
         svc.addMessage(activeConvId, 'model', data.result);
         bubble.innerHTML = renderMd(data.result);
         bubble.querySelectorAll('pre code').forEach(b => window.hljs && window.hljs.highlightElement(b));
+
+        // Auto-switch provider notice in UI if server used fallback
+        if (data.provider && data.provider.includes('fallback')) {
+          if (data.provider.includes('groq')) {
+            selectedProvider = 'groq';
+            const groqRadio = document.querySelector('input[name="model-choice"][value="groq"]');
+            if (groqRadio) groqRadio.checked = true;
+            if (modelLabel) modelLabel.textContent = 'Llama 3.3 70B (Otomatis)';
+            showToast('⚡ Gemini sibuk/error. Sistem otomatis beralih ke Groq (Llama 3.3 70B).');
+          } else if (data.provider.includes('gemini')) {
+            selectedProvider = 'gemini';
+            const geminiRadio = document.querySelector('input[name="model-choice"][value="gemini"]');
+            if (geminiRadio) geminiRadio.checked = true;
+            if (modelLabel) modelLabel.textContent = 'Gemini 2.5 Flash (Otomatis)';
+            showToast('⚡ Groq sibuk/error. Sistem otomatis beralih ke Gemini 2.5 Flash.');
+          }
+        }
+
         checkPipelineTrigger(data.result);
         if (isFirst) autoTitle(text);
       } else {
@@ -738,8 +827,13 @@
       }
     } catch (err) {
       botRow.classList.add('error-row');
-      bubble.textContent = formatError(err?.message || 'Tidak dapat terhubung ke server.');
+      if (err.name === 'AbortError') {
+        bubble.textContent = '⏳ Waktu permintaan habis (Timeout 25 detik). Server AI belum memberikan respons, silakan coba lagi.';
+      } else {
+        bubble.textContent = formatError(err?.message || 'Tidak dapat terhubung ke server.');
+      }
     } finally {
+      clearTimeout(timeoutId);
       setLoading(false);
       renderHistory();
       scrollToBottom();

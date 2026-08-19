@@ -147,20 +147,34 @@ app.post('/api/chat', async (req, res) => {
       try {
         text = await callGemini(conversation);
       } catch (geminiErr) {
+        console.warn('[chat] Gemini error (' + (geminiErr?.message || geminiErr) + '), attempting automatic fallback to Groq...');
         if (process.env.GROQ_API_KEY?.trim()) {
-          console.warn('[chat] Gemini error (' + (geminiErr?.message || geminiErr) + '), falling back to Groq Llama 3.3 70B...');
           try {
             text = await callGroq(conversation);
             actualProvider = 'groq (fallback)';
           } catch (groqErr) {
-            throw geminiErr;
+            throw new Error(`Gemini Error: ${geminiErr.message} | Groq Fallback Error: ${groqErr.message}`);
           }
         } else {
-          throw geminiErr;
+          throw new Error(`Gemini error: ${geminiErr.message}. (Tips: Tambahkan GROQ_API_KEY di Vercel/Environment Variables untuk cadangan otomatis)`);
         }
       }
     } else {
-      text = await callGroq(conversation);
+      try {
+        text = await callGroq(conversation);
+      } catch (groqErr) {
+        console.warn('[chat] Groq error (' + (groqErr?.message || groqErr) + '), attempting automatic fallback to Gemini...');
+        if (process.env.GEMINI_API_KEY?.trim()) {
+          try {
+            text = await callGemini(conversation);
+            actualProvider = 'gemini (fallback)';
+          } catch (geminiErr) {
+            throw new Error(`Groq Error: ${groqErr.message} | Gemini Fallback Error: ${geminiErr.message}`);
+          }
+        } else {
+          throw new Error(`Groq error: ${groqErr.message}. (Tips: Tambahkan GEMINI_API_KEY di Vercel/Environment Variables untuk cadangan otomatis)`);
+        }
+      }
     }
 
     return res.json({ result: text, provider: actualProvider });
