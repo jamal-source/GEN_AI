@@ -1026,6 +1026,9 @@
   }
 
   function fmt(d) {
+    if (!d || isNaN(d.getTime())) {
+      d = new Date();
+    }
     return d.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' });
   }
 
