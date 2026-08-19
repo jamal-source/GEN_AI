@@ -5,10 +5,20 @@ import path from 'path';
 import { fileURLToPath } from 'url';
 import { GoogleGenAI } from '@google/genai';
 import Groq from 'groq-sdk';
+import rateLimit from 'express-rate-limit';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const app = express();
 const PORT = process.env.PORT || 3000;
+
+// API Rate Limiter: Max 30 requests per minute per IP
+const apiLimiter = rateLimit({
+  windowMs: 60 * 1000, // 1 minute
+  max: 30,
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: { error: 'Terlalu banyak permintaan dari IP ini. Silakan coba lagi dalam 1 menit.' }
+});
 
 const SYSTEM_PROMPT = `\
 Kamu adalah KontenKu AI, asisten pintar khusus untuk pelaku UMKM Indonesia.
@@ -53,7 +63,8 @@ function getGroqClient() {
 }
 
 app.use(cors());
-app.use(express.json());
+app.use(express.json({ limit: '1mb' }));
+app.use('/api/', apiLimiter);
 app.use(express.static(path.join(__dirname, 'public'), {
   etag: false,
   lastModified: false,
@@ -121,6 +132,11 @@ app.post('/api/chat', async (req, res) => {
 
   if (!Array.isArray(conversation) || conversation.length === 0) {
     return res.status(400).json({ error: 'Field "conversation" harus berupa array dan tidak boleh kosong.' });
+  }
+
+  const isValidConv = conversation.every(m => m && typeof m === 'object' && typeof m.role === 'string' && typeof m.text === 'string');
+  if (!isValidConv) {
+    return res.status(400).json({ error: 'Format percakapan tidak valid. Setiap pesan harus memiliki atribut "role" dan "text".' });
   }
 
   try {

@@ -1,43 +1,38 @@
-<<<<<<< HEAD
 # KontenKu AI — AI Content Creation Workspace UMKM
-=======
-# KontenKu AI  AI Content Creation Workspace UMKM
->>>>>>> d66214015c60965acc57d37d29dfb0e217d83772
 
-
-
-KontenKu AI adalah aplikasi chatbot berbasis web yang membantu mahasiswa dan pemula (*learner*) memahami konsep pemrograman web (HTML, CSS, JavaScript, Node.js, Express, REST API) serta membimbing mereka dalam melakukan debugging error secara terstruktur — bukan sekadar memberikan solusi, tetapi juga menjelaskan *mengapa* error terjadi.
+KontenKu AI adalah aplikasi AI Content Creation Workspace berbasis web yang membantu pelaku UMKM Indonesia menghasilkan paket konten visual (9 slot image PNG 1080x1080px), video promosi MP4, dan copywriting jualan e-commerce (Shopee, TikTok, Instagram) secara otomatis.
 
 ---
 
 ## 🎯 Use Case & Persona
 
 * **Nama Bot**: KontenKu AI
-* **Persona**: Mentor Pemrograman Web Senior yang sabar, ramah, dan komunikatif.
-* **Target Pengguna**: Mahasiswa, pemula web development, dan peserta bootcamp.
-* **Tujuan Utama**: Membantu pengguna memahami konsep dasar pemrograman dan membimbing pemecahan masalah (debugging) secara bertahap tanpa sekadar memberikan perbaikan kode tanpa pemahaman.
+* **Persona**: Asisten Strategi & Konten Kreatif UMKM Indonesia yang berpengalaman, komunikatif, dan penuh semangat.
+* **Target Pengguna**: Pemilik Usaha Mikro, Kecil, dan Menengah (UMKM), reseller, dan pembuat konten lokal.
+* **Tujuan Utama**: Mengubah ide produk menjadi materi pemasaran visual, video, dan narasi copywriting yang siap dipublikasikan.
 
 ---
 
 ## 🛠️ Tech Stack & Model AI
 
-* **Frontend**: HTML5, Vanilla CSS3, Vanilla JavaScript (DOM Manipulation & Fetch API).
-* **Backend**: Node.js, Express.js, `cors`, `dotenv`, `@google/genai`, `groq-sdk`.
+* **Frontend**: HTML5, Vanilla CSS3, Vanilla JavaScript (ES6+, DOM Manipulation & Fetch API).
+* **Backend**: Node.js, Express.js, `cors`, `dotenv`, `express-rate-limit`, `express-validator`, `@google/genai`, `groq-sdk`.
 * **Multi-Provider AI**:
   * **Google Gemini 2.5 Flash** (`gemini-2.5-flash`) — Model utama (Akurat, presisi, cepat).
-  * **Groq Llama 3.3 70B** (`llama-3.3-70b-versatile`) — Model Open-Source ultra-fast dengan kuota gratis besar (14.400 request/hari).
+  * **Groq Llama 3.3 70B** (`llama-3.3-70b-versatile`) — Model Open-Source ultra-fast dengan kuota gratis besar.
 
 ---
 
-## ✨ Fitur Utama
+## ✨ Fitur Utama & Logika Sistem
 
-1. **Multi-Model Selector**: Memungkinkan pengguna berpindah antara Google Gemini 2.5 Flash dan Open-Source Llama 3.3 70B via Groq langsung dari sidebar UI.
-2. **Percakapan Multi-turn (Session Memory)**: Frontend menyimpan riwayat percakapan selama sesi browser aktif dan meneruskannya ke backend pada setiap request.
-3. **Markdown & Code Syntax Highlighting**: Mendukung rendering blok kode dengan tombol Copy dan penyorotan warna via `highlight.js`.
-4. **Indikator Loading ("Thinking State")**: Memberikan feedback visual saat AI sedang memproses jawaban.
-5. **Empty State & Quick Prompt Chips**: Grid 2x2 pertanyaan populer untuk langsung mulai berinteraksi.
-6. **Validasi Request & Penanganan Error**: Menangani input kosong, kesalahan jaringan, atau kredensial API key yang tidak terkonfigurasi secara aman.
-7. **Antarmuka Responsive Modern**: Desain 2-panel (sidebar drawer di mobile) bernuansa developer workspace yang nyaman digunakan.
+1. **Multi-Model Selector & Automatic Fallback**: Memungkinkan pengguna memilih Google Gemini atau Groq Llama 3.3. Jika Gemini mengalami gangguan/kuota habis, sistem otomatis berpindah (*fallback*) ke Groq.
+2. **Penyimpanan LocalStorage & Truncation Safety**: Riwayat percakapan disimpan secara aman di browser dan dipotong otomatis jika melebihi 100 pesan per percakapan untuk mencegah *overflow*.
+3. **Pencarian Riwayat Ter-debounce**: Fitur pencarian percakapan dilengkapi utilitas *debounce* agar responsif tanpa membebankan memori browser.
+4. **Proteksi API Rate Limiting**: Server dilengkapi middleware `express-rate-limit` (maksimal 30 request/menit per IP) untuk melindungi dari penyalahgunaan.
+5. **Format Error User-Friendly**: Pesan kesalahan teknis (seperti `403 Permission Denied` atau `429 Rate Limit`) diterjemahkan secara otomatis menjadi pesan Bahasa Indonesia yang ramah pengguna.
+6. **Markdown & Code Syntax Highlighting**: Mendukung rendering Markdown, penyorotan sintaksis via `highlight.js`, dan penanganan tautan yang aman (*sanitized*).
+7. **Indikator Loading ("Thinking State")**: Mengunci tombol kirim dan menampilkan animasi memuat saat AI sedang menyiapkan jawaban.
+8. **Konfirmasi Pengosongan Data**: Menghapus seluruh riwayat dilengkapi dengan dialog konfirmasi (*confirmation modal*) untuk mencegah kehilangan data tidak sengaja.
 
 ---
 
@@ -55,88 +50,32 @@ KontenKu AI adalah aplikasi chatbot berbasis web yang membantu mahasiswa dan pem
 
 ---
 
-## 📁 Struktur Project
+## 🚀 Cara Instalasi & Deploy
 
-```text
-GEN_AI/
-├── public/
-│   ├── index.html     # Halaman UI Chatbot (Sidebar + Chat Pane)
-│   ├── style.css      # Styling CSS Premium (Developer Dark Theme)
-│   └── script.js      # Logika Frontend, Provider Selector, State & Fetch API
-├── index.js           # Server Backend Express (Multi-Provider Routing Gemini + Groq)
-├── package.json       # Manifes proyek Node.js (ES Modules)
-├── .env               # Kredensial Environment (GEMINI_API_KEY & GROQ_API_KEY)
-├── .gitignore         # Berkas pengabaian Git (node_modules, .env, package-lock.json)
-└── README.md          # Dokumentasi Proyek
-```
-
----
-
-## 🚀 Cara Instalasi & Menjalankan Proyek
-
-### 1. Prasyarat
-* Node.js v18 atau versi yang lebih baru (`node -v`)
-* Gemini API Key dari [Google AI Studio](https://aistudio.google.com)
-* (Opsional) Groq API Key dari [Groq Console](https://console.groq.com)
-
-### 2. Instalasi Dependensi
-Jalankan perintah berikut di terminal:
+### 1. Jalankan di Lokal (Localhost)
 ```bash
+# Clone repositori dan masuk ke direktori
 npm install
-```
 
-### 3. Konfigurasi Environment Variable
-Buka atau buat berkas `.env` di direktori utama:
-```env
-GEMINI_API_KEY=your_gemini_api_key_here
-GROQ_API_KEY=your_groq_api_key_here
-PORT=3000
-```
+# Buat berkas .env dari template
+cp .env.example .env
 
-### 4. Menjalankan Server
-Jalankan perintah:
-```bash
+# Jalankan server lokal
 npm start
 ```
-Server backend dan frontend akan berjalan pada:
-```text
-http://localhost:3000
-```
+Akses di browser: `http://localhost:3000`
+
+### 2. Deploy ke Vercel (Produksi)
+1. Hubungkan repositori GitHub ini ke **Vercel**.
+2. Masuk ke **Project Settings -> Environment Variables** di Dashboard Vercel.
+3. Tambahkan variabel lingkungan berikut:
+   * `GEMINI_API_KEY`: API Key baru dari Google AI Studio.
+   * `GROQ_API_KEY`: (Opsional) API Key dari Groq Console.
+4. Buka tab **Deployments**, klik `...` pada deployment terbaru, lalu pilih **Redeploy**.
 
 ---
 
-## 📡 API Endpoints
-
-### `GET /api/providers`
-Mengembalikan daftar provider AI beserta status ketersediaan API key.
-
-### `POST /api/chat`
-Menerima array riwayat percakapan dan pilihan provider (`gemini` atau `groq`).
-
-**Request Body Example:**
-```json
-{
-  "provider": "gemini",
-  "conversation": [
-    {
-      "role": "user",
-      "text": "Kenapa saya mendapat error Cannot read properties of undefined?"
-    }
-  ]
-}
-```
-
-**Response Success (200 OK):**
-```json
-{
-  "result": "Error 'Cannot read properties of undefined' terjadi ketika...",
-  "provider": "gemini"
-}
-```
-
----
-
-## 📄 Lisensi
+## 📄 Lisensi & Kredit
 Dibuat oleh: Jamaludin  
 Universitas: Universitas Putra Bangsa Kebumen  
 Program: AI Productivity and AI API Integration for Developers — Sesi 3  

@@ -174,8 +174,15 @@
     _save() {
       try {
         const valid = this.conversations.filter(c => c && typeof c === 'object' && Array.isArray(c.messages) && c.messages.length > 0);
+        valid.forEach(c => {
+          if (c.messages.length > 100) {
+            c.messages = c.messages.slice(-100);
+          }
+        });
         localStorage.setItem(STORAGE_KEY, JSON.stringify(valid));
-      } catch {}
+      } catch (err) {
+        console.warn('Gagal menyimpan riwayat ke localStorage:', err);
+      }
     }
 
     getAll() {
@@ -526,11 +533,20 @@
     });
   }
 
+  function debounce(fn, wait) {
+    let timeout;
+    return function (...args) {
+      clearTimeout(timeout);
+      timeout = setTimeout(() => fn.apply(this, args), wait);
+    };
+  }
+
   if (historySearch) {
+    const debouncedRenderHistory = debounce(q => renderHistory(q), 250);
     historySearch.addEventListener('input', e => {
       const q = e.target.value;
       if (searchClear) searchClear.style.display = q ? 'block' : 'none';
-      renderHistory(q);
+      debouncedRenderHistory(q);
     });
   }
 
@@ -657,6 +673,23 @@
     newChatBtn.addEventListener('click', window.handleNewChat);
   }
 
+  function formatError(rawErr) {
+    if (!rawErr) return 'Terjadi kesalahan tidak dikenal pada server.';
+    const msg = typeof rawErr === 'string' ? rawErr : (rawErr.error || rawErr.message || JSON.stringify(rawErr));
+    const low = msg.toLowerCase();
+
+    if (low.includes('403') || low.includes('leaked') || low.includes('permission_denied') || low.includes('api key')) {
+      return '⚠️ Kunci API (API Key) telah diblokir atau tidak valid. Silakan perbarui API Key Anda di Vercel/Environment Variables.';
+    }
+    if (low.includes('429') || low.includes('resource_exhausted') || low.includes('terlalu banyak permintaan')) {
+      return '⏳ Batas penggunaan API tercapai (Rate Limit). Silakan tunggu 1 menit sebelum mencoba lagi.';
+    }
+    if (low.includes('500') || low.includes('internal server error')) {
+      return '⚙️ Terjadi gangguan sementara pada server AI. Silakan coba beberapa saat lagi.';
+    }
+    return msg;
+  }
+
   /* ── CHAT FORM SUBMISSION ───────────────────────────────────── */
   window.handleChatSubmit = async function () {
     const text = input ? input.value.trim() : '';
@@ -701,11 +734,11 @@
         if (isFirst) autoTitle(text);
       } else {
         botRow.classList.add('error-row');
-        bubble.textContent = data.error || 'Terjadi kesalahan pada server.';
+        bubble.textContent = formatError(data);
       }
-    } catch {
+    } catch (err) {
       botRow.classList.add('error-row');
-      bubble.textContent = 'Tidak dapat terhubung ke server.';
+      bubble.textContent = formatError(err?.message || 'Tidak dapat terhubung ke server.');
     } finally {
       setLoading(false);
       renderHistory();
