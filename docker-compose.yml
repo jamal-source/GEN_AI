@@ -1,10 +1,10 @@
 services:
-  # ── KontenKu AI Web Chatbot (Node.js + Express) ─────────────
+  # ── MitraKu AI Web Platform (Node.js + Express) ─────────────
   web:
     build:
       context: .
       dockerfile: Dockerfile
-    container_name: kontenku_web
+    container_name: mitraku_web
     restart: always
     ports:
       - "3000:3000"
@@ -13,54 +13,52 @@ services:
     environment:
       - PORT=3000
       - NODE_ENV=production
-    depends_on:
-      - n8n
+      - PUPPETEER_SKIP_CHROMIUM_DOWNLOAD=true
+      - PUPPETEER_EXECUTABLE_PATH=/usr/bin/chromium-browser
+    volumes:
+      - .:/app
 
-  # ── PostgreSQL Database for n8n & Product Content Engine ────
+  # ── PostgreSQL Database for MitraKu AI ─────────────────────
   postgres:
     image: postgres:16-alpine
-    container_name: pce_postgres
+    container_name: mitraku_postgres
     restart: always
     environment:
-      POSTGRES_USER: ${POSTGRES_USER:-pce_admin}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-pce_secure_password_2026}
-      POSTGRES_DB: ${POSTGRES_DB:-product_content_db}
+      POSTGRES_USER: ${POSTGRES_USER:-mitraku_admin}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-mitraku_secure_password_2026}
+      POSTGRES_DB: ${POSTGRES_DB:-mitraku_db}
     ports:
       - "5432:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
-      - ./product-content-engine/database/init.sql:/docker-entrypoint-initdb.d/init.sql
+      - ./database/init.sql:/docker-entrypoint-initdb.d/init.sql
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-pce_admin} -d ${POSTGRES_DB:-product_content_db}"]
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-mitraku_admin} -d ${POSTGRES_DB:-mitraku_db}"]
       interval: 10s
       timeout: 5s
       retries: 5
 
-  # ── n8n Automation Engine ──────────────────────────────────
-  n8n:
-    image: n8nio/n8n:latest
-    container_name: pce_n8n
+  # ── Langflow AI RAG Builder ─────────────────────────────────
+  langflow:
+    image: langflowai/langflow:latest
+    container_name: mitraku_langflow
     restart: always
     ports:
-      - "5678:5678"
+      - "7860:7860"
+    env_file:
+      - .env
     environment:
-      - N8N_HOST=${N8N_HOST:-localhost}
-      - N8N_PORT=${N8N_PORT:-5678}
-      - N8N_PROTOCOL=${N8N_PROTOCOL:-http}
-      - NODE_ENV=production
-      - GENERIC_TIMEZONE=${GENERIC_TIMEZONE:-Asia/Jakarta}
-      - DB_TYPE=postgresdb
-      - DB_POSTGRESDB_HOST=postgres
-      - DB_POSTGRESDB_PORT=5432
-      - DB_POSTGRESDB_DATABASE=${POSTGRES_DB:-product_content_db}
-      - DB_POSTGRESDB_USER=${POSTGRES_USER:-pce_admin}
-      - DB_POSTGRESDB_PASSWORD=${POSTGRES_PASSWORD:-pce_secure_password_2026}
+      - LANGFLOW_HOST=0.0.0.0
+      - LANGFLOW_PORT=7860
+      - LANGFLOW_NUM_WORKERS=1
+      - LANGFLOW_AUTO_LOGIN=true
+      - LANGFLOW_SUPERUSER_USERNAME=admin
+      - LANGFLOW_SUPERUSER_PASSWORD=admin
+      - GEMINI_API_KEY=${GEMINI_API_KEY}
+      - GROQ_API_KEY=${GROQ_API_KEY}
     volumes:
-      - n8n_data:/home/node/.n8n
-    depends_on:
-      postgres:
-        condition: service_healthy
+      - langflow_data:/app/langflow
 
 volumes:
   postgres_data:
-  n8n_data:
+  langflow_data:

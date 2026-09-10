@@ -3,8 +3,8 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>KontenKu AI — AI Content Creation Workspace UMKM</title>
-  <meta name="description" content="AI Workspace khusus UMKM Indonesia untuk menghasilkan 9 konten visual 1080x1080px, 1 video promosi MP4, dan copywriting e-commerce secara otomatis." />
+  <title>MitraKu AI — Mitra Digital Cerdas untuk UMKM Indonesia</title>
+  <meta name="description" content="MitraKu AI adalah asisten marketing digital untuk UMKM Indonesia. Generate copywriting Shopee, TikTok, Instagram, riset pasar, dan brand kit secara otomatis dengan AI." />
   
   <!-- Fonts & Syntax Highlighting -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -13,7 +13,20 @@
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/atom-one-dark.min.css">
   <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js" defer></script>
   
-  <link rel="stylesheet" href="style.css?v=2.6"/>
+  <link rel="stylesheet" href="style.css?v=3.0"/>
+  <style>
+    /* BUG #11 FIX: Print only Brand Kit output section */
+    @media print {
+      .sidebar, .top-bar, .view-tabs, .cw-form-panel, .cw-header-banner,
+      .tp-subnav, .composer-container, .sidebar-overlay, .bk-action-buttons,
+      [id$="-view"]:not(#brandkit-view), #brandkit-view .cw-form-panel,
+      #brandkit-view .cw-header-banner { display: none !important; }
+      .app-layout { display: block !important; }
+      #brandkit-view { display: block !important; }
+      #brandkit-view .cw-result-panel { width: 100% !important; }
+      #bk-result-content { display: block !important; }
+    }
+  </style>
 </head>
 <body>
 
@@ -31,7 +44,7 @@
               <path d="M2 12l10 5 10-5"/>
             </svg>
           </div>
-          <span class="brand-title">KontenKu <span class="brand-tag">AI</span></span>
+          <span class="brand-title">MitraKu <span class="brand-tag">AI</span></span>
         </div>
         <button type="button" id="sidebar-header-toggle" class="btn-icon sidebar-header-btn" title="Tutup Sidebar">
           <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
@@ -70,48 +83,18 @@
         <div id="history-empty" class="history-empty-state" style="display:none;">
           <div class="empty-icon">💬</div>
           <p class="empty-title">Belum ada percakapan</p>
-          <p class="empty-sub">Mulai percakapan pertamamu dengan KontenKu AI.</p>
+          <p class="empty-sub">Mulai percakapan pertamamu dengan MitraKu AI.</p>
         </div>
-      </div>
-
-      <!-- Workspace Menu Section -->
-      <div class="sidebar-workspace">
-        <div class="sidebar-section-label">WORKSPACE</div>
-        <nav class="workspace-nav">
-          <button type="button" class="ws-nav-item" onclick="openProductModal(); return false;">
-            <span class="ws-icon">📦</span>
-            <span>Produk Aktif</span>
-          </button>
-          <button type="button" class="ws-nav-item" onclick="quickPrompt('Buat deskripsi Shopee & TikTok untuk produk saya'); return false;">
-            <span class="ws-icon">📝</span>
-            <span>Konten Copywriting</span>
-          </button>
-          <button type="button" class="ws-nav-item" onclick="quickPrompt('Rekomendasikan template visual 1080x1080 untuk produk saya'); return false;">
-            <span class="ws-icon">🎨</span>
-            <span>Template Visual</span>
-          </button>
-          <button type="button" class="ws-nav-item" onclick="quickPrompt('Info syarat legalitas NIB, SPP-IRT, dan Sertifikat Halal UMKM'); return false;">
-            <span class="ws-icon">⚖️</span>
-            <span>Legalitas UMKM</span>
-          </button>
-          <button type="button" class="ws-nav-item" onclick="if(confirm('Hapus seluruh riwayat percakapan dan pengaturan produk?')) { localStorage.clear(); location.reload(); } return false;" style="color: #ff4d4d; border-top: 1px dashed rgba(255,255,255,0.1); margin-top: 8px; padding-top: 12px;">
-            <span class="ws-icon">🗑️</span>
-            <span>Bersihkan Semua Riwayat</span>
-          </button>
-        </nav>
       </div>
 
       <!-- Sidebar Footer -->
       <div class="sidebar-footer">
-        <div class="pipeline-status-card" id="sidebar-pipeline-card">
-          <div class="pipe-status-row">
-            <span class="pipe-dot" id="pipe-dot"></span>
-            <span class="pipe-text" id="pipe-label">Siap</span>
+        <div class="app-status-card">
+          <div class="status-indicator">
+            <span class="status-dot"></span>
+            <span class="status-text">MitraKu AI Online</span>
           </div>
-          <button type="button" id="sidebar-trigger-btn" class="btn-sidebar-trigger" onclick="triggerPipeline(); return false;">
-            <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.5"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg>
-            Jalankan Pipeline
-          </button>
+          <span class="status-sub">Asisten Marketing UMKM</span>
         </div>
       </div>
     </aside>
@@ -122,7 +105,7 @@
       <!-- TOP BAR -->
       <header class="top-bar">
         <div class="top-left">
-          <button type="button" id="sidebar-toggle" class="btn-icon" title="Toggle Sidebar">
+          <button type="button" id="sidebar-toggle" class="btn-icon" title="Toggle Sidebar" aria-label="Buka atau tutup sidebar">
             <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
               <line x1="3" y1="12" x2="21" y2="12"></line>
               <line x1="3" y1="6" x2="21" y2="6"></line>
@@ -138,154 +121,905 @@
           </div>
         </div>
 
+        <!-- Top Center Navigation Tabs -->
+        <div class="top-center">
+          <nav class="view-tabs">
+            <button type="button" class="view-tab-btn active" id="tab-chat" onclick="switchView('chat')">
+              <span class="tab-icon">💬</span>
+              <span class="tab-label">Chat AI</span>
+            </button>
+            <button type="button" class="view-tab-btn" id="tab-copywriting" onclick="switchView('copywriting')">
+              <span class="tab-icon">✍️</span>
+              <span class="tab-label">Copywriting Factory</span>
+            </button>
+            <button type="button" class="view-tab-btn" id="tab-brandkit" onclick="switchView('brandkit')">
+              <span class="tab-icon">🎨</span>
+              <span class="tab-label">Brand Kit</span>
+            </button>
+            <button type="button" class="view-tab-btn" id="tab-tokopintar" onclick="switchView('tokopintar')">
+              <span class="tab-icon">🏪</span>
+              <span class="tab-label">Toko Pintar</span>
+            </button>
+            <button type="button" class="view-tab-btn" id="tab-marketresearch" onclick="switchView('marketresearch')">
+              <span class="tab-icon">📊</span>
+              <span class="tab-label">Riset Pasar</span>
+            </button>
+          </nav>
+        </div>
+
         <div class="top-right">
           <!-- Compact Model Selector -->
           <div class="model-dropdown-wrap">
             <button type="button" id="model-selector-btn" class="model-selector-btn">
               <span class="model-sparkle">✦</span>
-              <span id="model-selected-label">Gemini 2.0 Flash</span>
+              <span id="model-selected-label">Gemini 2.5 Flash</span>
               <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 12 15 18 9"></polyline></svg>
             </button>
             <div id="model-menu" class="model-dropdown-menu" style="display:none;">
               <div class="dropdown-header">Pilih Model AI</div>
-              <label class="model-menu-item">
+              <label class="model-menu-item" data-value="gemini">
                 <input type="radio" name="model-choice" value="gemini" checked />
                 <div class="item-text">
-                  <div class="item-title">Gemini 2.0 Flash</div>
-                  <div class="item-desc">Akurat & cepat · Direkomendasikan</div>
+                  <div class="item-title">Gemini 2.5 Flash</div>
+                  <div class="item-desc">Akurat &amp; cepat · Direkomendasikan</div>
                 </div>
               </label>
-              <label class="model-menu-item">
+              <label class="model-menu-item" data-value="groq">
                 <input type="radio" name="model-choice" value="groq" />
                 <div class="item-text">
                   <div class="item-title">Llama 3.3 70B (Groq)</div>
-                  <div class="item-desc">Open Source · Gratis & cepat</div>
+                  <div class="item-desc">Open Source · Ultra Fast</div>
+                </div>
+              </label>
+              <label class="model-menu-item" data-value="openrouter" id="model-item-openrouter">
+                <input type="radio" name="model-choice" value="openrouter" />
+                <div class="item-text">
+                  <div class="item-title">OpenRouter AI</div>
+                  <div class="item-desc" id="openrouter-desc">DeepSeek / Multi LLM</div>
                 </div>
               </label>
             </div>
           </div>
 
           <!-- Theme Toggle -->
-          <button type="button" id="theme-toggle-btn" class="btn-icon" title="Ganti Mode Gelap/Terang">
+          <button type="button" id="theme-toggle-btn" class="btn-icon" title="Ganti Mode Gelap/Terang" aria-label="Ganti mode gelap atau terang">
             <span id="theme-icon">🌙</span>
           </button>
 
           <!-- Profil Pembuat / About Developer Button -->
-          <button type="button" id="about-btn" class="btn-icon" title="Profil Pembuat (Jamaludin)">
+          <button type="button" id="about-btn" class="btn-icon" title="Profil Pembuat (Jamaludin)" aria-label="Profil pembuat">
             <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
           </button>
         </div>
       </header>
 
-      <!-- CHAT MESSAGES AREA -->
-      <main id="chat-box" class="chat-box">
-        
-        <!-- EMPTY STATE -->
-        <div id="empty-state" class="empty-state">
-          <div class="empty-hero">
-            <div class="hero-logo">
-              <svg viewBox="0 0 24 24" width="36" height="36" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <path d="M12 2L2 7l10 5 10-5-10-5z"/>
-                <path d="M2 17l10 5 10-5"/>
-                <path d="M2 12l10 5 10-5"/>
-              </svg>
-            </div>
-            <h1 class="hero-title">KontenKu AI</h1>
-            <p class="hero-sub">Asisten AI untuk membuat dan mengembangkan konten produk UMKM Indonesia.</p>
-          </div>
-
-          <div class="suggestion-grid">
-            <button type="button" class="sug-card" onclick="quickPrompt('Buatkan paket konten produk lengkap untuk UMKM saya'); return false;">
-              <div class="sug-icon">📦</div>
-              <div class="sug-text">
-                <div class="sug-title">Buat konten produk</div>
-                <div class="sug-desc">Panduan & paket 9 visual + 1 video</div>
-              </div>
-            </button>
-            <button type="button" class="sug-card" onclick="quickPrompt('Buat deskripsi jualan Shopee & TikTok Shop yang menarik pembeli'); return false;">
-              <div class="sug-icon">✍️</div>
-              <div class="sug-text">
-                <div class="sug-title">Buat deskripsi Shopee</div>
-                <div class="sug-desc">Copywriting persuasif & ber-SEO</div>
-              </div>
-            </button>
-            <button type="button" class="sug-card" onclick="quickPrompt('Buat ide konsep video promosi 15 detik untuk TikTok'); return false;">
-              <div class="sug-icon">🎬</div>
-              <div class="sug-text">
-                <div class="sug-title">Buat konsep TikTok</div>
-                <div class="sug-desc">Hook, alur, & copywriting video</div>
-              </div>
-            </button>
-            <button type="button" class="sug-card" onclick="quickPrompt('Bantu analisis keunggulan & potensi pasar produk UMKM saya'); return false;">
-              <div class="sug-icon">📊</div>
-              <div class="sug-text">
-                <div class="sug-title">Analisis produk saya</div>
-                <div class="sug-desc">Evaluasi nilai jual & strategi branding</div>
-              </div>
-            </button>
-          </div>
-        </div>
-
-      </main>
-
-      <!-- STICKY CHAT COMPOSER -->
-      <div class="composer-container">
-        
-        <!-- Pipeline Banner (Auto triggers when product data ready) -->
-        <div id="pipeline-banner" class="pipeline-banner" style="display:none;">
-          <div class="banner-left">
-            <span class="banner-icon">✨</span>
-            <div class="banner-text">
-              <div class="banner-title">Data Produk Siap Diproses!</div>
-              <div class="banner-sub">Hasikan 9 gambar visual PNG (1080x1080) + 1 video MP4 promosi</div>
-            </div>
-          </div>
-          <button type="button" class="btn-banner-trigger" onclick="triggerPipeline(); return false;">
-            <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg>
-            Buat Konten Sekarang
-          </button>
-        </div>
-
-        <form id="chat-form" class="composer-card" action="javascript:void(0);">
-          <div class="composer-input-row">
-            <textarea
-              id="user-input"
-              placeholder="Tulis pesan... (Enter kirim · Shift+Enter baris baru)"
-              rows="1"
-            ></textarea>
-          </div>
-
-          <div class="composer-toolbar">
-            <div class="toolbar-left">
-              <button type="button" class="tool-btn" title="Opsi Tambahan" onclick="quickPrompt('Bantu saya membuat konten baru'); return false;">
-                <span>＋</span>
-              </button>
-              <button type="button" class="tool-btn" title="Lampirkan File" onclick="alert('Lampirkan teks atau data produk langsung di kotak pesan.'); return false;">
-                <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"></path></svg>
-              </button>
-              <button type="button" class="tool-btn" title="Upload Foto Produk" onclick="openProductModal(); return false;">
-                <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><circle cx="8.5" cy="8.5" r="1.5"></circle><polyline points="21 15 16 10 5 21"></polyline></svg>
-              </button>
-              
-              <div class="composer-active-product" onclick="openProductModal()">
-                <span id="composer-product-label">📦 produk: Umum</span>
-              </div>
-            </div>
-
-            <div class="toolbar-right">
-              <button type="submit" id="send-btn" class="btn-send" title="Kirim Pesan">
-                <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-                  <line x1="12" y1="19" x2="12" y2="5"></line>
-                  <polyline points="5 12 12 5 19 12"></polyline>
+      <!-- VIEW 1: CHAT AI VIEW -->
+      <div id="chat-view" class="view-container active">
+        <!-- CHAT MESSAGES AREA -->
+        <main id="chat-box" class="chat-box" role="log" aria-live="polite" aria-relevant="additions" aria-label="Riwayat chat">
+          
+          <!-- EMPTY STATE -->
+          <div id="empty-state" class="empty-state">
+            <div class="empty-hero">
+              <div class="hero-logo">
+                <svg viewBox="0 0 24 24" width="36" height="36" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M12 2L2 7l10 5 10-5-10-5z"/>
+                  <path d="M2 17l10 5 10-5"/>
+                  <path d="M2 12l10 5 10-5"/>
                 </svg>
+              </div>
+              <h1 class="hero-title">MitraKu AI</h1>
+              <p class="hero-sub">Mitra digital cerdas untuk marketing UMKM Indonesia — copywriting, brand kit, riset pasar, dan lebih banyak lagi.</p>
+            </div>
+
+            <div class="suggestion-grid">
+              <button type="button" class="sug-card" onclick="switchView('copywriting'); return false;">
+                <div class="sug-icon">✍️</div>
+                <div class="sug-text">
+                  <div class="sug-title">Copywriting Factory</div>
+                  <div class="sug-desc">Generate copy Shopee, TikTok, &amp; IG instan</div>
+                </div>
+              </button>
+              <button type="button" class="sug-card" onclick="quickPrompt('Buat deskripsi jualan Shopee &amp; TikTok Shop yang menarik pembeli'); return false;">
+                <div class="sug-icon">🛒</div>
+                <div class="sug-text">
+                  <div class="sug-title">Deskripsi Shopee SEO</div>
+                  <div class="sug-desc">Copywriting persuasif &amp; kata kunci populer</div>
+                </div>
+              </button>
+              <button type="button" class="sug-card" onclick="quickPrompt('Buat ide konsep video promosi 15 detik untuk TikTok'); return false;">
+                <div class="sug-icon">🎬</div>
+                <div class="sug-text">
+                  <div class="sug-title">Skrip Konten TikTok</div>
+                  <div class="sug-desc">Hook, alur video, &amp; ide sound viral</div>
+                </div>
+              </button>
+              <button type="button" class="sug-card" onclick="quickPrompt('Bantu analisis keunggulan &amp; potensi pasar produk UMKM saya'); return false;">
+                <div class="sug-icon">📊</div>
+                <div class="sug-text">
+                  <div class="sug-title">Analisis Produk UMKM</div>
+                  <div class="sug-desc">Evaluasi nilai jual &amp; strategi branding</div>
+                </div>
+              </button>
+              <button type="button" class="sug-card" onclick="quickPrompt('Info syarat legalitas NIB, SPP-IRT, dan Sertifikat Halal UMKM'); return false;">
+                <div class="sug-icon">⚖️</div>
+                <div class="sug-text">
+                  <div class="sug-title">Legalitas UMKM</div>
+                  <div class="sug-desc">Info NIB, SPP-IRT &amp; sertifikat halal</div>
+                </div>
               </button>
             </div>
-          </div>
-        </form>
 
-        <p class="composer-footnote">KontenKu AI — Asisten konten UMKM Indonesia 🇮🇩</p>
+            <!-- Onboarding Tip Card for New Users -->
+            <div class="onboarding-tip-card" id="onboarding-card">
+              <div class="tip-header">
+                <span class="tip-badge">💡 Panduan Cepat MitraKu AI</span>
+                <button type="button" class="tip-close-btn" onclick="dismissOnboarding(); return false;" title="Sembunyikan panduan">&times;</button>
+              </div>
+              <div class="tip-steps">
+                <div class="tip-step">
+                  <span class="step-num">1</span>
+                  <span>Klik <strong>📦 Produk Aktif</strong> di sidebar untuk mengisi brand &amp; varian usaha Anda.</span>
+                </div>
+                <div class="tip-step">
+                  <span class="step-num">2</span>
+                  <span>Gunakan <strong>✍️ Copywriting Factory</strong> untuk buat deskripsi Shopee &amp; TikTok instan.</span>
+                </div>
+                <div class="tip-step">
+                  <span class="step-num">3</span>
+                  <span>Tanyakan strategi promosi, analisis pasar &amp; legalitas usaha langsung di <strong>Chat AI</strong>!</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+        </main>
+
+        <!-- STICKY CHAT COMPOSER -->
+        <div class="composer-container">
+          <form id="chat-form" class="composer-card" action="javascript:void(0);">
+            <div class="composer-input-row">
+              <textarea
+                id="user-input"
+                placeholder="Tulis pesan... (Enter kirim · Shift+Enter baris baru)"
+                rows="1"
+              ></textarea>
+            </div>
+
+            <div class="composer-toolbar">
+              <div class="toolbar-left">
+                <button type="button" class="tool-btn" title="Kelola Produk Aktif" aria-label="Kelola produk aktif" onclick="openProductModal(); return false;">
+                  <span>📦</span>
+                </button>
+                
+                <div class="composer-active-product" onclick="openProductModal()">
+                  <span id="composer-product-label">📦 produk: Umum</span>
+                </div>
+              </div>
+
+              <div class="toolbar-right">
+                <button type="submit" id="send-btn" class="btn-send" title="Kirim Pesan" aria-label="Kirim pesan">
+                  <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                    <line x1="12" y1="19" x2="12" y2="5"></line>
+                    <polyline points="5 12 12 5 19 12"></polyline>
+                  </svg>
+                </button>
+              </div>
+            </div>
+          </form>
+
+          <p class="composer-footnote">MitraKu AI — Mitra digital UMKM Indonesia 🇮🇩</p>
+        </div>
       </div>
 
+      <!-- VIEW 2: COPYWRITING FACTORY VIEW -->
+      <div id="copywriting-view" class="view-container" style="display: none;">
+        <div class="copywriting-wrapper">
+          
+          <div class="cw-header-banner cw-banner-copywriting">
+            <!-- Decorative blobs -->
+            <div class="banner-deco" aria-hidden="true">
+              <div class="deco-blob deco-blob-1"></div>
+              <div class="deco-blob deco-blob-2"></div>
+              <svg class="deco-icon-cluster" viewBox="0 0 120 120" width="120" height="120" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                <rect x="10" y="20" width="60" height="8" rx="4" fill="currentColor" opacity="0.18"/>
+                <rect x="10" y="34" width="44" height="8" rx="4" fill="currentColor" opacity="0.13"/>
+                <rect x="10" y="48" width="52" height="8" rx="4" fill="currentColor" opacity="0.10"/>
+                <rect x="10" y="66" width="72" height="36" rx="10" fill="currentColor" opacity="0.08" stroke="currentColor" stroke-width="1.5" stroke-opacity="0.2"/>
+                <text x="22" y="88" font-size="18" fill="currentColor" opacity="0.5">✍️</text>
+                <circle cx="95" cy="30" r="18" fill="currentColor" opacity="0.07"/>
+                <text x="83" y="37" font-size="18" fill="currentColor" opacity="0.55">🛒</text>
+              </svg>
+            </div>
+            <!-- Content -->
+            <div class="banner-content">
+              <div class="banner-top-row">
+                <div class="cw-header-badge">✨ MODUL 1 — AI COPYWRITING FACTORY</div>
+                <span class="banner-ai-pill">⚡ Powered by AI</span>
+              </div>
+              <h1 class="cw-header-title">Generator Copywriting UMKM</h1>
+              <p class="cw-header-sub">Hasilkan deskripsi produk Shopee ber-SEO, skrip video TikTok viral, dan caption Instagram persuasif hanya dalam hitungan detik.</p>
+              <div class="banner-highlights">
+                <span class="banner-hl-item"><span class="hl-dot hl-green"></span>3 Platform</span>
+                <span class="banner-hl-item"><span class="hl-dot hl-blue"></span>SEO-Optimized</span>
+                <span class="banner-hl-item"><span class="hl-dot hl-purple"></span>&lt; 10 Detik</span>
+                <span class="banner-hl-item"><span class="hl-dot hl-orange"></span>Bahasa Indonesia</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- FEATURE CARDS: Copywriting Factory -->
+          <div class="module-feature-cards">
+            <div class="mfc-card mfc-card-green">
+              <div class="mfc-top-bar"></div>
+              <div class="mfc-icon">🛒</div>
+              <div class="mfc-title">Copy Shopee & Tokopedia SEO</div>
+              <div class="mfc-desc">Judul produk optimized + deskripsi persuasif + bullet keunggulan + hashtag relevan siap upload.</div>
+            </div>
+            <div class="mfc-card mfc-card-red">
+              <div class="mfc-top-bar"></div>
+              <div class="mfc-icon">🎵</div>
+              <div class="mfc-title">Skrip TikTok Shop Viral</div>
+              <div class="mfc-desc">Hook 3 detik, narasi 30–45s yang engaging, caption caption, sound & hashtag trending.</div>
+            </div>
+            <div class="mfc-card mfc-card-pink">
+              <div class="mfc-top-bar"></div>
+              <div class="mfc-icon">📸</div>
+              <div class="mfc-title">Caption Instagram Pro</div>
+              <div class="mfc-desc">Caption utama + alternatif + CTA kuat + ide konten carousel + hashtag niche & populer.</div>
+            </div>
+          </div>
+
+          <div class="cw-main-grid">
+            <!-- Left Form Panel -->
+            <div class="cw-form-panel">
+              <form id="copywriting-form" onsubmit="handleCopywritingSubmit(event); return false;">
+                
+                <div class="cw-form-group">
+                  <label for="cw-product-name" class="cw-label">
+                    <span>📦 Nama Produk / Brand</span>
+                    <span class="cw-req">*wajib</span>
+                  </label>
+                  <input type="text" id="cw-product-name" class="cw-input" placeholder="Contoh: Sambal Bawang Bu Ani, Kopi Nusantara" required />
+                </div>
+
+                <div class="cw-form-group">
+                  <label for="cw-advantages" class="cw-label">
+                    <span>✨ Keunggulan Utama &amp; Fitur Produk</span>
+                  </label>
+                  <textarea id="cw-advantages" class="cw-textarea" rows="3" placeholder="Contoh: 100% bahan alami tanpa pengawet, pedas gurih nagih, kemasan botol kaca 150g tahan 3 bulan"></textarea>
+                </div>
+
+                <div class="cw-form-group">
+                  <label for="cw-target-audience" class="cw-label">
+                    <span>🎯 Target Pelanggan</span>
+                  </label>
+                  <input type="text" id="cw-target-audience" class="cw-input" placeholder="Contoh: Ibu rumah tangga, anak kos, penyuka pedas (usia 18-45 tahun)" />
+                </div>
+
+                <div class="cw-form-group">
+                  <label class="cw-label">
+                    <span>📱 Pilih Platform Output</span>
+                    <span class="cw-req">*wajib</span>
+                  </label>
+                  <div class="platform-selector-group">
+                    <label class="platform-option active">
+                      <input type="radio" name="cw-platform" value="shopee" checked />
+                      <div class="platform-box">
+                        <span class="platform-icon">🛒</span>
+                        <div class="platform-info">
+                          <span class="platform-name">Shopee / Tokopedia</span>
+                          <span class="platform-sub">Judul SEO &amp; Deskripsi</span>
+                        </div>
+                      </div>
+                    </label>
+
+                    <label class="platform-option">
+                      <input type="radio" name="cw-platform" value="tiktok" />
+                      <div class="platform-box">
+                        <span class="platform-icon">🎵</span>
+                        <div class="platform-info">
+                          <span class="platform-name">TikTok Shop</span>
+                          <span class="platform-sub">Hook &amp; Skrip Video Viral</span>
+                        </div>
+                      </div>
+                    </label>
+
+                    <label class="platform-option">
+                      <input type="radio" name="cw-platform" value="instagram" />
+                      <div class="platform-box">
+                        <span class="platform-icon">📸</span>
+                        <div class="platform-info">
+                          <span class="platform-name">Instagram</span>
+                          <span class="platform-sub">Caption, CTA &amp; Carousel</span>
+                        </div>
+                      </div>
+                    </label>
+                  </div>
+                </div>
+
+                <button type="submit" id="cw-submit-btn" class="btn-generate-cw">
+                  <span class="btn-cw-icon">🚀</span>
+                  <span class="btn-cw-text">Hasilkan Copywriting AI</span>
+                </button>
+
+              </form>
+            </div>
+
+            <!-- Right Output Results Panel -->
+            <div class="cw-result-panel">
+              
+              <!-- Empty State in Output -->
+              <div id="cw-result-empty" class="cw-empty-state">
+                <div class="cw-empty-icon">📝</div>
+                <h3>Hasil Copywriting Akan Muncul Di Sini</h3>
+                <p>Isi formulir di sebelah kiri dan klik <strong>"Hasilkan Copywriting AI"</strong> untuk mendapatkan copywriting siap pakai.</p>
+              </div>
+
+              <!-- Loading Spinner State -->
+              <div id="cw-result-loading" class="cw-loading-state" role="status" aria-live="polite" style="display: none;">
+                <div class="cw-spinner"></div>
+                <p class="cw-loading-text">Sedang menyusun copywriting berkualitas tinggi...</p>
+                <p class="cw-loading-sub">AI sedang menyesuaikan kata kunci SEO dan gaya bahasa target pembeli.</p>
+              </div>
+
+              <!-- Results Content Display -->
+              <div id="cw-result-content" class="cw-results-wrapper" style="display: none;">
+                <div class="cw-results-header">
+                  <div class="cw-result-title-group">
+                    <span id="cw-result-platform-badge" class="cw-platform-badge">🛒 Shopee</span>
+                    <h2 class="cw-result-heading">Hasil Copywriting</h2>
+                  </div>
+                  <button type="button" id="cw-regen-btn" class="btn-secondary-action btn-sm" title="Buat ulang hasil copywriting">
+                    ↻ Buat Ulang
+                  </button>
+                  <button type="button" id="cw-copy-all-btn" class="btn-secondary-action btn-sm">
+                    📋 Salin Semua Content
+                  </button>
+                </div>
+
+                <div id="cw-cards-container" class="cw-cards-container">
+                  <!-- Dynamic Result Cards via JS -->
+                </div>
+              </div>
+
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+      <!-- VIEW 3: BRAND KIT BUILDER VIEW -->
+      <div id="brandkit-view" class="view-container" style="display: none;">
+        <div class="copywriting-wrapper">
+          
+          <div class="cw-header-banner bk-header-banner cw-banner-brandkit">
+            <div class="banner-deco" aria-hidden="true">
+              <div class="deco-blob deco-blob-1"></div>
+              <div class="deco-blob deco-blob-2"></div>
+              <svg class="deco-icon-cluster" viewBox="0 0 120 120" width="120" height="120" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                <circle cx="35" cy="35" r="20" fill="currentColor" opacity="0.20"/>
+                <circle cx="70" cy="35" r="14" fill="currentColor" opacity="0.13"/>
+                <circle cx="52" cy="65" r="10" fill="currentColor" opacity="0.09"/>
+                <text x="21" y="43" font-size="18" fill="currentColor" opacity="0.6">🎨</text>
+                <rect x="18" y="80" width="78" height="22" rx="8" fill="currentColor" opacity="0.07" stroke="currentColor" stroke-width="1" stroke-opacity="0.2"/>
+                <text x="46" y="95" font-size="14" fill="currentColor" opacity="0.45">✏️ Brand</text>
+              </svg>
+            </div>
+            <div class="banner-content">
+              <div class="banner-top-row">
+                <div class="cw-header-badge bk-header-badge">🎨 MODUL 2 — AI BRAND KIT BUILDER</div>
+                <span class="banner-ai-pill">⚡ Powered by AI</span>
+              </div>
+              <h1 class="cw-header-title">Generator Identitas Brand UMKM</h1>
+              <p class="cw-header-sub">Hasilkan palet warna estetik, 3 pilihan tagline, cerita brand yang emosional, dan pilar konten marketing secara otomatis &amp; siap download.</p>
+              <div class="banner-highlights">
+                <span class="banner-hl-item"><span class="hl-dot hl-purple"></span>Palet Warna AI</span>
+                <span class="banner-hl-item"><span class="hl-dot hl-pink"></span>3 Tagline Options</span>
+                <span class="banner-hl-item"><span class="hl-dot hl-indigo"></span>Brand Story</span>
+                <span class="banner-hl-item"><span class="hl-dot hl-green"></span>Download PNG/PDF</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- FEATURE CARDS: Brand Kit Builder -->
+          <div class="module-feature-cards">
+            <div class="mfc-card mfc-card-purple">
+              <div class="mfc-top-bar"></div>
+              <div class="mfc-icon">🎨</div>
+              <div class="mfc-title">Palet Warna AI</div>
+              <div class="mfc-desc">Kombinasi warna brand yang harmonis berdasarkan psikologi warna & kepribadian usaha Anda.</div>
+            </div>
+            <div class="mfc-card mfc-card-pink">
+              <div class="mfc-top-bar"></div>
+              <div class="mfc-icon">✏️</div>
+              <div class="mfc-title">3 Opsi Tagline</div>
+              <div class="mfc-desc">Tiga pilihan tagline kreatif yang mencerminkan nilai brand, pilih yang paling resonan.</div>
+            </div>
+            <div class="mfc-card mfc-card-indigo">
+              <div class="mfc-top-bar"></div>
+              <div class="mfc-icon">📖</div>
+              <div class="mfc-title">Brand Story & Konten</div>
+              <div class="mfc-desc">Narasi brand emosional + pilar konten marketing siap post, download PNG/PDF.</div>
+            </div>
+          </div>
+
+          <div class="cw-main-grid">
+            <!-- Left Form Panel -->
+            <div class="cw-form-panel">
+              <form id="brandkit-form" onsubmit="handleBrandKitSubmit(event); return false;">
+                
+                <div class="cw-form-group">
+                  <label for="bk-brand-name" class="cw-label">
+                    <span>📦 Nama Usaha / Brand</span>
+                    <span class="cw-req">*wajib</span>
+                  </label>
+                  <input type="text" id="bk-brand-name" class="cw-input" placeholder="Contoh: Kopi Senja, Sambal Bu Ani, Hijab Nusantara" required />
+                </div>
+
+                <div class="cw-form-group">
+                  <label for="bk-product-type" class="cw-label">
+                    <span>🏷️ Jenis Produk / Industri</span>
+                  </label>
+                  <input type="text" id="bk-product-type" class="cw-input" placeholder="Contoh: Kuliner Minuman Kopi, Fashion Muslim, Snack Pedas" />
+                </div>
+
+                <div class="cw-form-group">
+                  <label class="cw-label">
+                    <span>✨ Kepribadian &amp; Karakter Brand</span>
+                    <span class="cw-req">*wajib</span>
+                  </label>
+                  <div class="platform-selector-group">
+                    <label class="platform-option bk-personality-option active">
+                      <input type="radio" name="bk-personality" value="Modern & Minimalis" checked />
+                      <div class="platform-box">
+                        <span class="platform-icon">⚡</span>
+                        <div class="platform-info">
+                          <span class="platform-name">Modern &amp; Minimalis</span>
+                          <span class="platform-sub">Kesan kekinian, bersih &amp; profesional</span>
+                        </div>
+                      </div>
+                    </label>
+
+                    <label class="platform-option bk-personality-option">
+                      <input type="radio" name="bk-personality" value="Elegan & Premium" />
+                      <div class="platform-box">
+                        <span class="platform-icon">👑</span>
+                        <div class="platform-info">
+                          <span class="platform-name">Elegan &amp; Premium</span>
+                          <span class="platform-sub">Kesan eksklusif, mewah &amp; berkelas</span>
+                        </div>
+                      </div>
+                    </label>
+
+                    <label class="platform-option bk-personality-option">
+                      <input type="radio" name="bk-personality" value="Playful & Ceria" />
+                      <div class="platform-box">
+                        <span class="platform-icon">🎉</span>
+                        <div class="platform-info">
+                          <span class="platform-name">Playful &amp; Ceria</span>
+                          <span class="platform-sub">Kesan ramah, penuh warna &amp; energik</span>
+                        </div>
+                      </div>
+                    </label>
+
+                    <label class="platform-option bk-personality-option">
+                      <input type="radio" name="bk-personality" value="Tradisional & Autentik" />
+                      <div class="platform-box">
+                        <span class="platform-icon">🌾</span>
+                        <div class="platform-info">
+                          <span class="platform-name">Tradisional &amp; Autentik</span>
+                          <span class="platform-sub">Kesan warisan budaya, alami &amp; hangat</span>
+                        </div>
+                      </div>
+                    </label>
+                  </div>
+                </div>
+
+                <button type="submit" id="bk-submit-btn" class="btn-generate-cw bk-btn-generate">
+                  <span class="btn-cw-icon">🚀</span>
+                  <span class="btn-cw-text">Hasilkan Brand Kit AI</span>
+                </button>
+
+              </form>
+            </div>
+
+            <!-- Right Output Results Panel -->
+            <div class="cw-result-panel">
+              
+              <!-- Empty State in Output -->
+              <div id="bk-result-empty" class="cw-empty-state">
+                <div class="cw-empty-icon">🎨</div>
+                <h3>Brand Kit UMKM Akan Muncul Di Sini</h3>
+                <p>Isi formulir di sebelah kiri dan klik <strong>"Hasilkan Brand Kit AI"</strong> untuk mendapatkan panduan visual brand lengkap.</p>
+              </div>
+
+              <!-- Loading Spinner State -->
+              <div id="bk-result-loading" class="cw-loading-state" role="status" aria-live="polite" style="display: none;">
+                <div class="cw-spinner"></div>
+                <p class="cw-loading-text">Sedang meracik Identitas Brand &amp; Palet Warna...</p>
+                <p class="cw-loading-sub">AI sedang mencocokkan psikologi warna, cerita brand, dan tipografi yang paling relevan.</p>
+              </div>
+
+              <!-- Results Content Display -->
+              <div id="bk-result-content" class="cw-results-wrapper" style="display: none;">
+                <div class="cw-results-header">
+                  <div class="cw-result-title-group">
+                    <span id="bk-result-brand-badge" class="cw-platform-badge badge-shopee">🎨 Brand Kit</span>
+                    <h2 id="bk-result-title" class="cw-result-heading">MitraKu Brand Guide</h2>
+                  </div>
+                  <div class="bk-action-buttons" style="display: flex; gap: 8px;">
+                    <button type="button" id="bk-regen-btn" class="btn-secondary-action btn-sm" title="Buat ulang brand kit">
+                      ↻ Buat Ulang
+                    </button>
+                    <button type="button" id="bk-download-png-btn" class="btn-primary-action btn-sm" onclick="downloadBrandKitPNG()">
+                      ⬇ Download Visual PNG
+                    </button>
+                    <button type="button" class="btn-secondary-action btn-sm" onclick="window.print()">
+                      🖨️ Cetak / Simpan PDF
+                    </button>
+                  </div>
+                </div>
+
+                <div id="bk-cards-container" class="cw-cards-container">
+                  <!-- Dynamic Result Cards via JS -->
+                </div>
+              </div>
+
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+      <!-- VIEW 4: TOKO PINTAR AI (RAG CS 24 JAM) VIEW -->
+      <div id="tokopintar-view" class="view-container" style="display: none;">
+        <div class="copywriting-wrapper">
+          
+          <div class="cw-header-banner tp-header-banner cw-banner-tokopintar">
+            <div class="banner-deco" aria-hidden="true">
+              <div class="deco-blob deco-blob-1"></div>
+              <div class="deco-blob deco-blob-2"></div>
+              <svg class="deco-icon-cluster" viewBox="0 0 120 120" width="120" height="120" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                <rect x="15" y="15" width="90" height="60" rx="12" fill="currentColor" opacity="0.08" stroke="currentColor" stroke-width="1.5" stroke-opacity="0.2"/>
+                <circle cx="35" cy="90" r="10" fill="currentColor" opacity="0.12"/>
+                <circle cx="85" cy="90" r="10" fill="currentColor" opacity="0.12"/>
+                <text x="42" y="52" font-size="26" fill="currentColor" opacity="0.55">🏪</text>
+                <rect x="25" y="30" width="36" height="6" rx="3" fill="currentColor" opacity="0.15"/>
+                <rect x="25" y="42" width="24" height="6" rx="3" fill="currentColor" opacity="0.10"/>
+              </svg>
+            </div>
+            <div class="banner-content">
+              <div class="banner-top-row">
+                <div class="cw-header-badge tp-header-badge">🏪 MODUL 3 — TOKO PINTAR AI (RAG CS 24 JAM)</div>
+                <span class="banner-ai-pill">⚡ Powered by RAG AI</span>
+              </div>
+              <h1 class="cw-header-title">Customer Service AI 24/7 Toko Anda</h1>
+              <p class="cw-header-sub">Kelola katalog produk toko UMKM Anda, uji simulasi chatbot CS cerdas berbasis RAG, dan bagikan link atau embed widget chatbot ke pelanggan.</p>
+              <div class="banner-highlights">
+                <span class="banner-hl-item"><span class="hl-dot hl-green"></span>RAG Engine</span>
+                <span class="banner-hl-item"><span class="hl-dot hl-blue"></span>CS 24/7 Otomatis</span>
+                <span class="banner-hl-item"><span class="hl-dot hl-teal"></span>Multi-Produk Catalog</span>
+                <span class="banner-hl-item"><span class="hl-dot hl-orange"></span>Widget Embed</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Toko Pintar Sub Navigation Pills -->
+          <div class="tp-subnav">
+            <button type="button" class="tp-subnav-btn active" id="tp-tab-catalog" onclick="switchTpSubView('catalog')">
+              📦 Kelola Katalog Toko (<span id="tp-catalog-count">3</span>)
+            </button>
+            <button type="button" class="tp-subnav-btn" id="tp-tab-chat" onclick="switchTpSubView('chat')">
+              💬 Simulasi Chat CS Toko
+            </button>
+            <button type="button" class="tp-subnav-btn" id="tp-tab-embed" onclick="switchTpSubView('embed')">
+              🔗 Link &amp; Embed Widget CS
+            </button>
+          </div>
+
+          <!-- FEATURE CARDS: Toko Pintar AI -->
+          <div class="module-feature-cards">
+            <div class="mfc-card mfc-card-green">
+              <div class="mfc-top-bar"></div>
+              <div class="mfc-icon">📦</div>
+              <div class="mfc-title">Katalog Produk RAG</div>
+              <div class="mfc-desc">Database produk toko yang digunakan AI CS untuk menjawab pertanyaan pembeli secara akurat.</div>
+            </div>
+            <div class="mfc-card mfc-card-teal">
+              <div class="mfc-top-bar"></div>
+              <div class="mfc-icon">🤖</div>
+              <div class="mfc-title">Simulasi Chat CS AI</div>
+              <div class="mfc-desc">Uji langsung chatbot dengan pertanyaan pelanggan nyata — lihat seberapa pintar CS Anda.</div>
+            </div>
+            <div class="mfc-card mfc-card-blue">
+              <div class="mfc-top-bar"></div>
+              <div class="mfc-icon">🔗</div>
+              <div class="mfc-title">Widget & Embed CS</div>
+              <div class="mfc-desc">Link direct + kode iframe siap pasang di website, bio Instagram, atau halaman toko online.</div>
+            </div>
+          </div>
+
+          <!-- SUBVIEW 1: KELOLA KATALOG TOKO -->
+          <div id="tp-subview-catalog" class="cw-main-grid">
+            <!-- Left Form Panel -->
+            <div class="cw-form-panel">
+              <h3 style="font-size: 15px; font-weight: 800; color: var(--text-main); margin-bottom: 14px;">➕ Tambah Produk ke Katalog Toko</h3>
+              <form id="tp-product-form" onsubmit="handleAddCatalogProduct(event); return false;">
+                
+                <div class="cw-form-group">
+                  <label for="tp-input-name" class="cw-label">
+                    <span>📦 Nama Produk</span>
+                    <span class="cw-req">*wajib</span>
+                  </label>
+                  <input type="text" id="tp-input-name" class="cw-input" placeholder="Contoh: Sambal Bawang Original 150g" required />
+                </div>
+
+                <div class="cw-form-group">
+                  <label for="tp-input-category" class="cw-label">
+                    <span>🏷️ Kategori Produk</span>
+                  </label>
+                  <input type="text" id="tp-input-category" class="cw-input" placeholder="Contoh: Kuliner / Sambal, Minuman, Fashion" />
+                </div>
+
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+                  <div class="cw-form-group">
+                    <label for="tp-input-price" class="cw-label">
+                      <span>💰 Harga (Rp)</span>
+                      <span class="cw-req">*wajib</span>
+                    </label>
+                    <input type="number" id="tp-input-price" class="cw-input" placeholder="25000" min="0" required />
+                  </div>
+                  <div class="cw-form-group">
+                    <label for="tp-input-stock" class="cw-label">
+                      <span>📊 Jumlah Stok</span>
+                    </label>
+                    <input type="number" id="tp-input-stock" class="cw-input" placeholder="50" min="0" value="50" />
+                  </div>
+                </div>
+
+                <div class="cw-form-group">
+                  <label for="tp-input-desc" class="cw-label">
+                    <span>📝 Deskripsi &amp; Spesifikasi Produk</span>
+                  </label>
+                  <textarea id="tp-input-desc" class="cw-textarea" rows="3" placeholder="Contoh: Terbuat dari cabai rawit asli, higienis, pedas nagih, masa simpan 3 bulan"></textarea>
+                </div>
+
+                <div class="cw-form-group">
+                  <label for="tp-input-shipping" class="cw-label">
+                    <span>🚚 Info Pengiriman &amp; Catatan Toko</span>
+                  </label>
+                  <input type="text" id="tp-input-shipping" class="cw-input" placeholder="Contoh: Dikirim H+1 dari Kebumen, garansi ganti baru jika rusak" />
+                </div>
+
+                <button type="submit" id="tp-add-btn" class="btn-generate-cw" style="background: linear-gradient(135deg, #059669, #10b981);">
+                  <span>➕ Tambahkan ke Katalog</span>
+                </button>
+
+              </form>
+            </div>
+
+            <!-- Right Catalog List Panel -->
+            <div class="cw-result-panel">
+              <div class="cw-results-header">
+                <div class="cw-result-title-group">
+                  <span class="cw-platform-badge badge-shopee" style="background: rgba(16, 185, 129, 0.12); color: #10b981; border-color: rgba(16, 185, 129, 0.3);">📦 RAG Catalog</span>
+                  <h2 class="cw-result-heading">Katalog Produk Toko Aktif</h2>
+                </div>
+                <button type="button" class="btn-secondary-action btn-sm" onclick="loadStoreCatalog()">
+                  🔄 Refresh Katalog
+                </button>
+              </div>
+
+              <div id="tp-catalog-list-container" class="cw-cards-container">
+                <!-- Dynamic Catalog Product Cards via JS -->
+              </div>
+            </div>
+          </div>
+
+          <!-- SUBVIEW 2: SIMULASI CHATBOT CS TOKO -->
+          <div id="tp-subview-chat" class="tp-chat-simulation-panel" style="display: none;">
+            <div class="tp-chat-header">
+              <div style="display: flex; align-items: center; justify-content: space-between; gap: 10px; width: 100%;">
+                <div class="tp-chat-title" style="min-width: 0;">
+                  <span class="status-dot"></span>
+                  <strong>Customer Service Chatbot CS — Live Simulation</strong>
+                </div>
+                <button type="button" id="tp-cs-reset-btn" class="btn-secondary-action btn-sm" onclick="resetTpCsChat()" style="white-space: nowrap;">🧹 Chat Baru</button>
+              </div>
+              <span class="tp-chat-sub">Merespons pertanyaan berdasarkan Katalog Toko secara akurat (RAG Engine)</span>
+            </div>
+
+            <div id="tp-cs-chat-box" class="tp-cs-chat-box">
+              <div class="message-row bot-row">
+                <div class="message-avatar" style="background: linear-gradient(135deg, #059669, #10b981);">CS</div>
+                <div class="message-content-wrap">
+                  <div class="message-meta">
+                    <span class="meta-name">Customer Service AI</span>
+                    <span class="meta-time">Online 24/7</span>
+                  </div>
+                  <div class="bubble" id="tp-cs-greeting">
+                    Halo Kak! 👋 Selamat datang di <strong id="tp-cs-greet-store">Toko UMKM Pintar</strong>. Ada yang bisa saya bantu terkait produk, stok, harga, atau pengiriman kami?
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div id="tp-cs-quick-prompts" class="tp-cs-quick-prompts">
+              <!-- Quick prompts dinamis dari katalog via JS -->
+            </div>
+
+            <form id="tp-cs-form" onsubmit="handleTpCsSubmit(event); return false;" class="tp-cs-composer">
+              <input type="text" id="tp-cs-input" class="cw-input" placeholder="Tulis pertanyaan pelanggan... (contoh: Stok rasa coklat masih ada?)" autocomplete="off" />
+              <button type="submit" id="tp-cs-send-btn" class="btn-primary-action" style="padding: 10px 20px; white-space: nowrap;">Kirim CS</button>
+            </form>
+          </div>
+
+          <!-- SUBVIEW 3: LINK & EMBED WIDGET CS -->
+          <div id="tp-subview-embed" class="tp-embed-panel" style="display: none;">
+            <div class="cw-card" style="padding: 24px;">
+              <h3 style="font-size: 16px; font-weight: 800; color: var(--text-main); margin-bottom: 8px;">🔗 Bagikan Chatbot CS Toko Anda</h3>
+              <p style="font-size: 13px; color: var(--text-muted); margin-bottom: 20px;">Bagikan link langsung ini kepada calon pelanggan Anda di bio Instagram, TikTok, atau WhatsApp agar mereka bisa bertanya ke CS AI 24/7.</p>
+
+              <div class="cw-form-group">
+                <label for="tp-store-name-input" class="cw-label">
+                  <span>🏪 Nama Toko (tampil di widget chatbot)</span>
+                </label>
+                <input type="text" id="tp-store-name-input" class="cw-input" placeholder="Contoh: Toko Sandi Kebumen" maxlength="60" oninput="onTpStoreNameChange()" />
+                <p style="font-size: 11.5px; color: var(--text-muted); margin-top: 6px;">Link &amp; kode embed diperbarui otomatis mengikuti nama toko ini.</p>
+              </div>
+
+              <div class="cw-form-group" style="margin-top: 16px;">
+                <label class="cw-label"><span>🌐 Link Direct Chat CS Toko</span></label>
+                <div style="display: flex; gap: 8px;">
+                  <input type="text" id="tp-share-link" class="cw-input" value="" readonly placeholder="Memuat link..."/>
+                  <button type="button" class="btn-primary-action" id="tp-btn-copy-link" onclick="copyTpShareLink(this)">📋 Salin Link</button>
+                </div>
+              </div>
+
+              <div class="cw-form-group" style="margin-top: 24px;">
+                <label class="cw-label"><span>💻 Kode Embed Widget untuk Website UMKM</span></label>
+                <p style="font-size: 12px; color: var(--text-muted); margin-bottom: 8px;">Tempelkan kode iframe HTML ini di website Anda untuk menampilkan widget chatbot CS otomatis di pojok kanan bawah.</p>
+                <div style="position: relative;">
+                  <textarea id="tp-embed-code" class="cw-textarea" rows="4" readonly style="font-family: monospace; font-size: 12px;" placeholder="Memuat kode embed..."></textarea>
+                  <button type="button" class="btn-copy-card" id="tp-btn-copy-embed" onclick="copyTpEmbedCode(this)" style="position: absolute; top: 10px; right: 10px;">📋 Salin Embed Code</button>
+                </div>
+              </div>
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+      <!-- VIEW 5: RISET PASAR INSTAN VIEW -->
+      <div id="marketresearch-view" class="view-container" style="display: none;">
+        <div class="copywriting-wrapper">
+          
+          <div class="cw-header-banner mr-header-banner cw-banner-risetpasar">
+            <div class="banner-deco" aria-hidden="true">
+              <div class="deco-blob deco-blob-1"></div>
+              <div class="deco-blob deco-blob-2"></div>
+              <svg class="deco-icon-cluster" viewBox="0 0 120 120" width="120" height="120" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                <rect x="15" y="80" width="18" height="28" rx="4" fill="currentColor" opacity="0.20"/>
+                <rect x="40" y="60" width="18" height="48" rx="4" fill="currentColor" opacity="0.15"/>
+                <rect x="65" y="45" width="18" height="63" rx="4" fill="currentColor" opacity="0.10"/>
+                <rect x="90" y="30" width="18" height="78" rx="4" fill="currentColor" opacity="0.20"/>
+                <polyline points="24,76 49,56 74,41 99,26" stroke="currentColor" stroke-width="2.5" stroke-opacity="0.4" stroke-linecap="round"/>
+                <text x="86" y="22" font-size="14" fill="currentColor" opacity="0.55">📊</text>
+              </svg>
+            </div>
+            <div class="banner-content">
+              <div class="banner-top-row">
+                <div class="cw-header-badge mr-header-badge">📊 MODUL 4 — AI RISET PASAR INSTAN</div>
+                <span class="banner-ai-pill">⚡ Powered by AI</span>
+              </div>
+              <h1 class="cw-header-title">Analisis Posisi &amp; Peluang Pasar UMKM</h1>
+              <p class="cw-header-sub">Dapatkan analisis estimasi harga kompetitor, 3 strategi diferensiasi, 5 kata kunci SEO teratas Shopee/Tokopedia, dan rekomendasi platform jualan paling relevan.</p>
+              <div class="banner-highlights">
+                <span class="banner-hl-item"><span class="hl-dot hl-blue"></span>Analisis Harga</span>
+                <span class="banner-hl-item"><span class="hl-dot hl-green"></span>3 Diferensiasi</span>
+                <span class="banner-hl-item"><span class="hl-dot hl-indigo"></span>5 Kata Kunci SEO</span>
+                <span class="banner-hl-item"><span class="hl-dot hl-orange"></span>Rekomendasi Platform</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- FEATURE CARDS: Riset Pasar -->
+          <div class="module-feature-cards">
+            <div class="mfc-card mfc-card-blue">
+              <div class="mfc-top-bar"></div>
+              <div class="mfc-icon">💰</div>
+              <div class="mfc-title">Analisis Harga Kompetitor</div>
+              <div class="mfc-desc">Estimasi range harga pasar + rekomendasi posisi harga yang kompetitif untuk produk Anda.</div>
+            </div>
+            <div class="mfc-card mfc-card-indigo">
+              <div class="mfc-top-bar"></div>
+              <div class="mfc-icon">🏆</div>
+              <div class="mfc-title">3 Strategi Diferensiasi</div>
+              <div class="mfc-desc">Keunggulan kompetitif yang bisa diklaim untuk membedakan produk Anda dari saingan di pasar.</div>
+            </div>
+            <div class="mfc-card mfc-card-green">
+              <div class="mfc-top-bar"></div>
+              <div class="mfc-icon">🔍</div>
+              <div class="mfc-title">5 Kata Kunci SEO Teratas</div>
+              <div class="mfc-desc">Keyword populer Shopee/Tokopedia + rekomendasi platform jualan yang paling relevan.</div>
+            </div>
+          </div>
+
+          <div class="cw-main-grid">
+            <!-- Left Form Panel -->
+            <div class="cw-form-panel">
+              <form id="mr-form" onsubmit="handleMarketResearchSubmit(event); return false;">
+                
+                <div class="cw-form-group">
+                  <label for="mr-product-name" class="cw-label">
+                    <span>📦 Nama Produk / Usaha</span>
+                    <span class="cw-req">*wajib</span>
+                  </label>
+                  <input type="text" id="mr-product-name" class="cw-input" placeholder="Contoh: Sambal Bawang Cumi 150g, Sepatu Batik Handcrafted" required />
+                </div>
+
+                <div class="cw-form-group">
+                  <label for="mr-category" class="cw-label">
+                    <span>🏷️ Kategori Produk &amp; Industri</span>
+                  </label>
+                  <input type="text" id="mr-category" class="cw-input" placeholder="Contoh: Kuliner Kemasan / Fashion Batik / Skincare Herbal" />
+                </div>
+
+                <div class="cw-form-group">
+                  <label for="mr-price" class="cw-label">
+                    <span>💰 Rencana / Harga Jual Saat Ini (Rp)</span>
+                  </label>
+                  <input type="number" id="mr-price" class="cw-input" placeholder="25000" min="0" />
+                </div>
+
+                <button type="submit" id="mr-submit-btn" class="btn-generate-cw mr-btn-generate">
+                  <span class="btn-cw-icon">🚀</span>
+                  <span class="btn-cw-text">Analisis Riset Pasar AI</span>
+                </button>
+
+              </form>
+            </div>
+
+            <!-- Right Output Results Panel -->
+            <div class="cw-result-panel">
+              
+              <!-- Empty State in Output -->
+              <div id="mr-result-empty" class="cw-empty-state">
+                <div class="cw-empty-icon">📊</div>
+                <h3>Hasil Analisis Pasar Akan Muncul Di Sini</h3>
+                <p>Isi data produk di sebelah kiri dan klik <strong>"Analisis Riset Pasar AI"</strong> untuk mendapatkan insight e-commerce mendalam.</p>
+              </div>
+
+              <!-- Loading Spinner State -->
+              <div id="mr-result-loading" class="cw-loading-state" role="status" aria-live="polite" style="display: none;">
+                <div class="cw-spinner"></div>
+                <p class="cw-loading-text">Sedang Menganalisis Tren Pasar &amp; Kata Kunci SEO...</p>
+                <p class="cw-loading-sub">AI sedang membandingkan rentang harga kompetitor, strategi diferensiasi, dan rekomendasi platform.</p>
+              </div>
+
+              <!-- Results Content Display -->
+              <div id="mr-result-content" class="cw-results-wrapper" style="display: none;">
+                <div class="cw-results-header">
+                  <div class="cw-result-title-group">
+                    <span class="cw-platform-badge badge-shopee" style="background: rgba(59, 130, 246, 0.12); color: #3b82f6; border-color: rgba(59, 130, 246, 0.3);">📊 Market Insight</span>
+                    <h2 id="mr-result-title" class="cw-result-heading">Laporan Riset Pasar</h2>
+                  </div>
+                  <button type="button" id="mr-regen-btn" class="btn-secondary-action btn-sm" title="Buat ulang riset pasar">
+                    ↻ Buat Ulang
+                  </button>
+                </div>
+
+                <div id="mr-cards-container" class="cw-cards-container">
+                  <!-- Dynamic Market Research Cards via JS -->
+                </div>
+              </div>
+
+            </div>
+          </div>
+
+        </div>
+      </div>
     </div>
 
     <!-- Overlay for mobile sidebar -->
@@ -293,28 +1027,13 @@
 
   </div>
 
-  <!-- MODAL: Lightbox Image Preview -->
-  <div id="image-modal" class="modal-overlay" style="display:none;" onclick="closeImageModal()">
-    <div class="modal-card modal-image-card" onclick="event.stopPropagation()">
-      <button type="button" class="modal-close-btn" onclick="closeImageModal(); return false;">&times;</button>
-      <div class="modal-img-frame">
-        <img id="modal-img" src="" alt="Preview Asset" />
-      </div>
-      <div class="modal-details">
-        <h3 id="modal-title">Visual Asset PNG</h3>
-        <p id="modal-desc">Dimensi: 1080 x 1080 px • Format PNG High Resolution</p>
-        <a id="modal-download-btn" href="" download class="btn-primary-action">
-          ⬇️ Download Asset PNG
-        </a>
-      </div>
-    </div>
-  </div>
+  
 
   <!-- MODAL: Confirmation Delete Conversation -->
-  <div id="delete-modal" class="modal-overlay" style="display:none;">
+  <div id="delete-modal" class="modal-overlay" role="dialog" aria-modal="true" aria-labelledby="delete-modal-title" style="display:none;">
     <div class="modal-card modal-confirm-card" onclick="event.stopPropagation()">
       <div class="confirm-icon">⚠️</div>
-      <h3 class="confirm-title">Hapus percakapan?</h3>
+      <h3 class="confirm-title" id="delete-modal-title">Hapus percakapan?</h3>
       <p class="confirm-desc">Percakapan ini akan dihapus secara permanen. Tindakan ini tidak dapat dibatalkan.</p>
       <div class="confirm-actions">
         <button type="button" class="btn-secondary" onclick="closeDeleteModal(); return false;">Batal</button>
@@ -324,14 +1043,14 @@
   </div>
 
   <!-- MODAL: Product Context Switcher & Management -->
-  <div id="product-modal" class="modal-overlay" style="display:none;">
+  <div id="product-modal" class="modal-overlay" role="dialog" aria-modal="true" aria-labelledby="product-modal-title" style="display:none;">
     <div class="modal-card modal-product-card" onclick="event.stopPropagation()">
       <div class="modal-header">
-        <h3>📦 Kelola & Pilih Produk Aktif</h3>
+        <h3 id="product-modal-title">📦 Kelola & Pilih Produk Aktif</h3>
         <button type="button" class="modal-close-btn" onclick="closeProductModal(); return false;">&times;</button>
       </div>
       <div class="modal-body">
-        <p class="modal-help-text">Pilih atau tambahkan info produk UMKM Anda agar KontenKu AI memberikan hasil yang sangat spesifik dan faktual.</p>
+        <p class="modal-help-text">Pilih atau tambahkan info produk UMKM Anda agar MitraKu AI memberikan hasil yang sangat spesifik dan faktual.</p>
 
         <div class="form-group">
           <label for="input-product-name">Nama Brand / Usaha</label>
@@ -356,10 +1075,10 @@
   </div>
 
   <!-- MODAL: Profil Pembuat / About Developer -->
-  <div id="about-modal" class="modal-overlay" style="display:none;" onclick="closeAboutModal()">
+  <div id="about-modal" class="modal-overlay" role="dialog" aria-modal="true" aria-labelledby="about-modal-title" style="display:none;" onclick="closeAboutModal()">
     <div class="modal-card modal-about-card" onclick="event.stopPropagation()">
       <div class="modal-header">
-        <h3>👨‍💻 Profil Pembuat Aplikasi</h3>
+        <h3 id="about-modal-title">👨‍💻 Profil Pembuat Aplikasi</h3>
         <button type="button" class="modal-close-btn" onclick="closeAboutModal(); return false;">&times;</button>
       </div>
       <div class="modal-body">
@@ -378,28 +1097,55 @@
         </div>
 
         <div class="dev-desc-box">
-          <h4>💡 Tentang KontenKu AI</h4>
-          <p>KontenKu AI adalah <strong>AI Content Creation Workspace</strong> khusus UMKM Indonesia untuk membantu pemilik usaha kecil dan menengah menghasilkan 9 konten visual (PNG 1080x1080px), 1 video promosi MP4, dan copywriting jualan e-commerce (Shopee, TikTok, Instagram) secara otomatis dan faktual.</p>
+          <h4>💡 Tentang MitraKu AI</h4>
+          <p>MitraKu AI adalah <strong>AI Marketing Suite</strong> lengkap untuk UMKM Indonesia — membantu pemilik usaha kecil menghasilkan copywriting Shopee/TikTok/Instagram, brand kit lengkap, riset pasar instan, dan customer service AI 24/7 otomatis berbasis RAG.</p>
         </div>
 
         <div class="dev-stack-box">
-          <h4>🛠️ Tech Stack & Model AI</h4>
+          <h4>🛠️ Tech Stack &amp; Model AI</h4>
           <div class="stack-tags">
-            <span class="stag">Google Gemini 2.0 Flash</span>
+            <span class="stag">Google Gemini 2.5 Flash</span>
             <span class="stag">Groq Llama 3.3 70B</span>
-            <span class="stag">Node.js Express</span>
-            <span class="stag">Python Render Engine</span>
-            <span class="stag">n8n Orchestrator</span>
-            <span class="stag">PostgreSQL / SQLite</span>
+            <span class="stag">Node.js Express v5</span>
+            <span class="stag">Puppeteer PNG Export</span>
+            <span class="stag">RAG CS Engine</span>
+            <span class="stag">PostgreSQL</span>
           </div>
         </div>
       </div>
-      <div class="modal-footer">
+      <div class="modal-footer" style="justify-content: space-between;">
+        <button type="button" class="btn-danger" onclick="openClearHistoryModal(); return false;">🗑️ Bersihkan Riwayat</button>
         <button type="button" class="btn-primary-action" onclick="closeAboutModal(); return false;">Tutup Profil</button>
       </div>
     </div>
   </div>
 
-  <script src="script.js?v=2.6"></script>
+  <!-- MODAL: Confirm Clear History -->
+  <div id="confirm-clear-modal" class="modal-overlay" role="dialog" aria-modal="true" aria-labelledby="confirm-clear-title" style="display:none;">
+    <div class="modal-card modal-confirm-card" onclick="event.stopPropagation()">
+      <div class="confirm-icon">🗑️</div>
+      <h3 class="confirm-title" id="confirm-clear-title">Hapus seluruh riwayat?</h3>
+      <p class="confirm-desc">Seluruh riwayat percakapan dan pengaturan produk aktif di perangkat ini akan dihapus permanen.</p>
+      <div class="confirm-actions">
+        <button type="button" class="btn-secondary" onclick="closeClearHistoryModal(); return false;">Batal</button>
+        <button type="button" class="btn-danger" id="confirm-clear-btn">Bersihkan Semua</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL: Konfirmasi Hapus Produk Katalog (BUG #10 FIX) -->
+  <div id="catalog-delete-modal" class="modal-overlay" role="dialog" aria-modal="true" aria-labelledby="catalog-delete-title" style="display:none;">
+    <div class="modal-card modal-confirm-card" onclick="event.stopPropagation()">
+      <div class="confirm-icon">🗑️</div>
+      <h3 class="confirm-title" id="catalog-delete-title">Hapus produk dari katalog?</h3>
+      <p class="confirm-desc" id="catalog-delete-desc">Produk ini akan dihapus dari katalog toko secara permanen. Tindakan ini tidak dapat dibatalkan.</p>
+      <div class="confirm-actions">
+        <button type="button" class="btn-secondary" onclick="closeCatalogDeleteModal(); return false;">Batal</button>
+        <button type="button" class="btn-danger" id="catalog-delete-confirm-btn">Hapus Produk</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="script.js?v=3.1"></script>
 </body>
 </html>

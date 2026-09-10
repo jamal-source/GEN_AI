@@ -1,0 +1,11 @@
+{
+  "mcpServers": {
+    "langflow": {
+      "url": "http://localhost:7860/api/v1/mcp/sse"
+    },
+    "ponytail": {
+      "command": "node",
+      "args": ["C:/Users/ACER/.ponytail/ponytail-mcp/index.js"]
+    }
+  }
+}

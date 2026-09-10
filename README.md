@@ -1,82 +1,84 @@
-# KontenKu AI — AI Content Creation Workspace UMKM
+# 🇮🇩 MitraKu AI — Platform Digital Marketing UMKM Indonesia
 
-KontenKu AI adalah aplikasi AI Content Creation Workspace berbasis web yang membantu pelaku UMKM Indonesia menghasilkan paket konten visual (9 slot image PNG 1080x1080px), video promosi MP4, dan copywriting jualan e-commerce (Shopee, TikTok, Instagram) secara otomatis.
+> **"Satu AI, Semua Kebutuhan Marketing UMKM"**
 
----
-
-## 🎯 Use Case & Persona
-
-* **Nama Bot**: KontenKu AI
-* **Persona**: Asisten Strategi & Konten Kreatif UMKM Indonesia yang berpengalaman, komunikatif, dan penuh semangat.
-* **Target Pengguna**: Pemilik Usaha Mikro, Kecil, dan Menengah (UMKM), reseller, dan pembuat konten lokal.
-* **Tujuan Utama**: Mengubah ide produk menjadi materi pemasaran visual, video, dan narasi copywriting yang siap dipublikasikan.
+MitraKu AI adalah platform AI Marketing Suite berbasis web yang dirancang khusus untuk pemilik Usaha Mikro, Kecil, dan Menengah (UMKM) Indonesia. Dengan 5 modul AI terintegrasi, MitraKu AI membantu UMKM dari riset pasar hingga otomatisasi Customer Service 24 jam.
 
 ---
 
-## 🛠️ Tech Stack & Model AI
+## 🚀 5 Modul Utama MitraKu AI
 
-* **Frontend**: HTML5, Vanilla CSS3, Vanilla JavaScript (ES6+, DOM Manipulation & Fetch API).
-* **Backend**: Node.js, Express.js, `cors`, `dotenv`, `express-rate-limit`, `express-validator`, `@google/genai`, `groq-sdk`.
-* **Multi-Provider AI**:
-  * **Google Gemini 2.5 Flash** (`gemini-2.5-flash`) — Model utama (Akurat, presisi, cepat).
-  * **Groq Llama 3.3 70B** (`llama-3.3-70b-versatile`) — Model Open-Source ultra-fast dengan kuota gratis besar.
+1. **🏪 Modul 1: Toko Pintar AI (RAG Customer Service 24/7)**
+   - Kelola katalog produk UMKM (nama, kategori, harga, stok, deskripsi, info pengiriman).
+   - Customer Service AI cerdas berbasis **RAG (Retrieval-Augmented Generation)** yang merespons pertanyaan pelanggan secara akurat.
+   - Sapaan ramah "Kak", jawaban berdasarkan katalog toko aktual, dan graceful handling barang yang tidak ada.
+   - Sediakan **Direct Chat Link** dan **Widget Embed Code (Iframe)** untuk dipasang di website toko.
+
+2. **📊 Modul 2: Riset Pasar Instan**
+   - Analisis cepat posisi produk UMKM di pasar e-commerce (Shopee, Tokopedia, TikTok Shop).
+   - Estimasi rentang harga kompetitor sejenis & analisis positioning.
+   - 3 strategi diferensiasi produk unik.
+   - 5 kata kunci SEO teratas dengan fitur _1-click copy_.
+   - Rekomendasi platform jualan yang paling pas.
+
+3. **🎨 Modul 3: Brand Kit Builder Generator**
+   - Hasilkan panduan visual identitas brand UMKM secara instan.
+   - 4 pilihan kepribadian brand (_Modern & Minimalis_, _Elegan & Premium_, _Playful & Ceria_, _Tradisional & Autentik_).
+   - Output: 3 pilihan tagline, cerita brand emosional, 5 palet warna HEX interaktif, rekomendasi tipografi, dan 4 pilar konten.
+   - Powered by **Puppeteer Rendering Engine** untuk download visual High-Res PNG (1200x1400) dan PDF / Cetak.
+
+4. **✍️ Modul 4: Copywriting Factory**
+   - Generator teks promosi yang disesuaikan algoritma platform e-commerce & media sosial.
+   - **Mode Shopee/Tokopedia**: Judul SEO 70 karakter + deskripsi 1500 karakter + bullet point keunggulan + hashtag.
+   - **Mode TikTok/Reels**: Hook 3 detik + skrip video 30 detik + caption + hashtag FYP + ide sound.
+   - **Mode Instagram**: Caption storytelling + CTA mendesak + 20 hashtag niche + ide carousel.
+   - Fitur _1-click copy_ per section dan salin semua content.
+
+5. **💬 Modul 5: Mitra Chat AI**
+   - Asisten konsultasi strategi bisnis & marketing UMKM.
+   - Pengingat otomatis produk aktif UMKM (_product context injection_).
+   - Fitur **Regenerate Response AI** yang real Re-fetch & State Update.
+   - Onboarding Quick Guide Card untuk pengguna baru.
 
 ---
 
-## ✨ Fitur Utama & Logika Sistem
+## 🛠️ Tech Stack
 
-1. **Multi-Model Selector & Automatic Fallback**: Memungkinkan pengguna memilih Google Gemini atau Groq Llama 3.3. Jika Gemini mengalami gangguan/kuota habis, sistem otomatis berpindah (*fallback*) ke Groq.
-2. **Penyimpanan LocalStorage & Truncation Safety**: Riwayat percakapan disimpan secara aman di browser dan dipotong otomatis jika melebihi 100 pesan per percakapan untuk mencegah *overflow*.
-3. **Pencarian Riwayat Ter-debounce**: Fitur pencarian percakapan dilengkapi utilitas *debounce* agar responsif tanpa membebankan memori browser.
-4. **Proteksi API Rate Limiting**: Server dilengkapi middleware `express-rate-limit` (maksimal 30 request/menit per IP) untuk melindungi dari penyalahgunaan.
-5. **Format Error User-Friendly**: Pesan kesalahan teknis (seperti `403 Permission Denied` atau `429 Rate Limit`) diterjemahkan secara otomatis menjadi pesan Bahasa Indonesia yang ramah pengguna.
-6. **Markdown & Code Syntax Highlighting**: Mendukung rendering Markdown, penyorotan sintaksis via `highlight.js`, dan penanganan tautan yang aman (*sanitized*).
-7. **Indikator Loading ("Thinking State")**: Mengunci tombol kirim dan menampilkan animasi memuat saat AI sedang menyiapkan jawaban.
-8. **Konfirmasi Pengosongan Data**: Menghapus seluruh riwayat dilengkapi dengan dialog konfirmasi (*confirmation modal*) untuk mencegah kehilangan data tidak sengaja.
+- **Frontend**: Vanilla HTML5, CSS3, JavaScript ES6+ (No heavy framework required for fast load time).
+- **Backend**: Node.js, Express.js, `cors`, `dotenv`, `express-rate-limit`.
+- **Visual Rendering**: Puppeteer (HTML-to-PNG High-Res Export).
+- **Database / Storage**: PostgreSQL 16 (init.sql included) & Astra DB RAG Catalog.
+- **AI Engine**: Google Gemini 2.0 Flash (`gemini-2.0-flash`) + Groq Llama 3.3 70B (`llama-3.3-70b-versatile`).
 
 ---
 
-## ⚙️ Model Configurations
-
-### 1. Google Gemini 2.5 Flash
-* **Model**: `gemini-2.5-flash`
-* **Temperature**: `0.2`
-* **Top P**: `0.85` | **Top K**: `40`
-
-### 2. Groq Llama 3.3 70B (Open Source)
-* **Model**: `llama-3.3-70b-versatile`
-* **Temperature**: `0.2`
-* **Top P**: `0.85` | **Max Tokens**: `4096`
-
----
-
-## 🚀 Cara Instalasi & Deploy
+## 🚀 Cara Menjalankan Aplikasi
 
 ### 1. Jalankan di Lokal (Localhost)
+
 ```bash
-# Clone repositori dan masuk ke direktori
+# Clone repositori dan install dependencies
 npm install
 
-# Buat berkas .env dari template
+# Buat file .env dari template
 cp .env.example .env
 
-# Jalankan server lokal
+# Jalankan server
 npm start
 ```
-Akses di browser: `http://localhost:3000`
 
-### 2. Deploy ke Vercel (Produksi)
-1. Hubungkan repositori GitHub ini ke **Vercel**.
-2. Masuk ke **Project Settings -> Environment Variables** di Dashboard Vercel.
-3. Tambahkan variabel lingkungan berikut:
-   * `GEMINI_API_KEY`: API Key baru dari Google AI Studio.
-   * `GROQ_API_KEY`: (Opsional) API Key dari Groq Console.
-4. Buka tab **Deployments**, klik `...` pada deployment terbaru, lalu pilih **Redeploy**.
+Akses di browser: **`http://localhost:3000`**
+
+### 2. Jalankan dengan Docker Compose
+
+```bash
+docker-compose up -d --build
+```
 
 ---
 
 ## 📄 Lisensi & Kredit
-Dibuat oleh: Jamaludin  
-Universitas: Universitas Putra Bangsa Kebumen  
-Program: AI Productivity and AI API Integration for Developers — Sesi 3  
-Penyelenggara: Hacktiv8
+
+- **Nama**: Jamaludin
+- **Universitas**: Universitas Putra Bangsa Kebumen
+- **Program**: Hacktiv8 — Hackton

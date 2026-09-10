@@ -6,6 +6,12 @@
       "sourceType": "github",
       "skillPath": "skills/gemini-interactions-api/SKILL.md",
       "computedHash": "d31ccab548a5b8115dec781bebff8e1d840437f6751549bc57a50145c4fb0fed"
+    },
+    "investigate-first": {
+      "source": "JuliusBrussee/caveman",
+      "sourceType": "github",
+      "skillPath": "skills/investigate-first/SKILL.md",
+      "computedHash": "59b581b5abfc0e19b7dd5a7c3bb2b16621ab5e94e085065c7b724a9c86cc3d4d"
     }
   }
 }

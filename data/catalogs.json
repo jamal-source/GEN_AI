@@ -1,0 +1,31 @@
+{
+  "default": [
+    {
+      "id": "prod_1",
+      "name": "Sambal Bawang Bu Ani (150g)",
+      "category": "Kuliner / Sambal Kemasan",
+      "price": 28000,
+      "stock": 45,
+      "description": "Sambal bawang homemade dengan 100% cabai rawit merah asli & bawang merah pilihan. Gurih, pedas pas, tanpa pengawet. Tahan 3 bulan di suhu ruang.",
+      "shipping_info": "Dikirim dari Kebumen, packing bubble wrap tebal. Bebas ongkir Shopee/Tokopedia."
+    },
+    {
+      "id": "prod_2",
+      "name": "Kopi Robusta Nusantara (250g)",
+      "category": "Minuman / Kopi",
+      "price": 45000,
+      "stock": 20,
+      "description": "Biji kopi Robusta petik merah kualitas super dari lereng pegunungan. Dark roast, aroma bold & manis alami.",
+      "shipping_info": "Pengiriman H+1 setelah sangrai segar."
+    },
+    {
+      "id": "prod_3",
+      "name": "Keripik Singkong Coklat Lumer (200g)",
+      "category": "Cemilan",
+      "price": 22000,
+      "stock": 60,
+      "description": "Keripik singkong renyah yang dilumuri coklat lumer tebal yang tidak bikin enek.",
+      "shipping_info": "Garansi ganti baru jika melempem saat pengiriman."
+    }
+  ]
+}

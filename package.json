@@ -1,7 +1,7 @@
 {
-  "name": "devtutor-gemini-chatbot",
-  "version": "1.0.0",
-  "description": "DevTutor AI Chatbot - Final Project Sesi 3 Hacktiv8",
+  "name": "mitraku-ai",
+  "version": "2.6.0",
+  "description": "MitraKu AI — AI Marketing Suite for Indonesian UMKMs (Hacktiv8 Final Project)",
   "main": "index.js",
   "type": "module",
   "scripts": {
@@ -14,7 +14,7 @@
     "dotenv": "^17.2.0",
     "express": "^5.1.0",
     "express-rate-limit": "^8.6.2",
-    "express-validator": "^7.3.2",
-    "groq-sdk": "^1.5.0"
+    "groq-sdk": "^1.5.0",
+    "puppeteer": "^25.10.0"
   }
 }
