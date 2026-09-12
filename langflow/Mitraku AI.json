@@ -817,7 +817,7 @@
                 "title_case": false,
                 "track_in_telemetry": false,
                 "type": "str",
-                "value": "AIzaSyCevSwlJzMiBjyTVd1Bx1oihh0lIUbtfjE"
+                "value": ""
               },
               "code": {
                 "advanced": true,
@@ -3717,7 +3717,7 @@
                 "title_case": false,
                 "track_in_telemetry": false,
                 "type": "str",
-                "value": "AIzaSyAB8hYc4wgxV0saL9SdeU91wKHLgd4kVxo"
+                "value": ""
               },
               "base_url_ibm_watsonx": {
                 "_input_type": "DropdownInput",

@@ -1,0 +1,944 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <title>MitraKu AI — Pitching Deck</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    html, body {
+      width: 1920px;
+      height: 100%;
+      background-color: #080C14;
+      color: #F3F4F6;
+      font-family: 'Plus Jakarta Sans', system-ui, -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+      -webkit-print-color-adjust: exact !important;
+      print-color-adjust: exact !important;
+    }
+
+    @page {
+      size: 1920px 1080px;
+      margin: 0;
+    }
+
+    .slide {
+      width: 1920px;
+      height: 1080px;
+      position: relative;
+      overflow: hidden;
+      background: #0B0F19 !important;
+      background-image: 
+        radial-gradient(circle at 10% 20%, rgba(0, 242, 254, 0.12) 0%, transparent 40%),
+        radial-gradient(circle at 90% 80%, rgba(139, 92, 246, 0.15) 0%, transparent 45%),
+        radial-gradient(circle at 50% 50%, rgba(16, 185, 129, 0.08) 0%, transparent 60%) !important;
+      padding: 60px 80px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      page-break-after: always;
+      break-after: page;
+    }
+
+    /* Top Bar Header */
+    .slide-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 20px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.12);
+      padding-bottom: 18px;
+    }
+
+    .brand-logo {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+    }
+
+    .brand-icon {
+      width: 48px;
+      height: 48px;
+      border-radius: 12px;
+      background: linear-gradient(135deg, #00F2FE 0%, #4FACFE 100%);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 26px;
+      font-weight: 800;
+      color: #0B0F19;
+      box-shadow: 0 0 20px rgba(0, 242, 254, 0.4);
+    }
+
+    .brand-title {
+      font-size: 28px;
+      font-weight: 800;
+      letter-spacing: -0.5px;
+      color: #FFFFFF;
+    }
+
+    .slide-tag {
+      font-size: 14px;
+      font-weight: 700;
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+      color: #00F2FE;
+      background: rgba(0, 242, 254, 0.12);
+      padding: 8px 18px;
+      border-radius: 20px;
+      border: 1px solid rgba(0, 242, 254, 0.4);
+    }
+
+    /* Slide Footer */
+    .slide-footer {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-top: 1px solid rgba(255, 255, 255, 0.12);
+      padding-top: 18px;
+      font-size: 14px;
+      color: #9CA3AF;
+    }
+
+    .footer-left {
+      display: flex;
+      align-items: center;
+      gap: 20px;
+    }
+
+    .footer-badge {
+      background: rgba(255, 255, 255, 0.1);
+      padding: 4px 12px;
+      border-radius: 6px;
+      color: #E5E7EB;
+      font-weight: 600;
+    }
+
+    /* Typography */
+    h1.slide-title {
+      font-size: 54px;
+      font-weight: 800;
+      line-height: 1.15;
+      letter-spacing: -1.5px;
+      margin-bottom: 12px;
+      color: #FFFFFF;
+    }
+
+    .slide-subtitle {
+      font-size: 22px;
+      color: #9CA3AF;
+      margin-bottom: 30px;
+      font-weight: 400;
+      line-height: 1.5;
+    }
+
+    .gradient-text {
+      color: #00F2FE;
+      background: linear-gradient(135deg, #00F2FE 0%, #4FACFE 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    .gradient-purple {
+      color: #C084FC;
+      background: linear-gradient(135deg, #C084FC 0%, #A855F7 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    .gradient-emerald {
+      color: #34D399;
+      background: linear-gradient(135deg, #34D399 0%, #10B981 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    /* Card Components */
+    .glass-card {
+      background: rgba(17, 24, 39, 0.8) !important;
+      border: 1px solid rgba(255, 255, 255, 0.12) !important;
+      border-radius: 20px;
+      padding: 28px;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
+    }
+
+    .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 26px; }
+    .grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 26px; }
+    .grid-4 { display: grid; grid-template-columns: repeat(4, 1fr); gap: 22px; }
+    .grid-5 { display: grid; grid-template-columns: repeat(5, 1fr); gap: 18px; }
+
+    /* Icon Box */
+    .icon-box {
+      width: 56px;
+      height: 56px;
+      border-radius: 14px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 26px;
+      margin-bottom: 18px;
+    }
+
+    .icon-cyan { background: rgba(0, 242, 254, 0.15); border: 1px solid rgba(0, 242, 254, 0.4); color: #00F2FE; }
+    .icon-purple { background: rgba(139, 92, 246, 0.15); border: 1px solid rgba(139, 92, 246, 0.4); color: #A855F7; }
+    .icon-emerald { background: rgba(16, 185, 129, 0.15); border: 1px solid rgba(16, 185, 129, 0.4); color: #10B981; }
+    .icon-amber { background: rgba(245, 158, 11, 0.15); border: 1px solid rgba(245, 158, 11, 0.4); color: #F59E0B; }
+
+    /* Flowchart / Step Diagram */
+    .flow-container {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 15px;
+      margin-top: 20px;
+    }
+
+    .flow-step {
+      flex: 1;
+      background: rgba(17, 24, 39, 0.85);
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      border-radius: 16px;
+      padding: 24px 18px;
+      text-align: center;
+    }
+
+    .flow-arrow {
+      font-size: 24px;
+      color: #00F2FE;
+      font-weight: bold;
+    }
+
+    /* Metric Card */
+    .metric-value {
+      font-size: 60px;
+      font-weight: 800;
+      letter-spacing: -2px;
+      line-height: 1;
+      margin-bottom: 12px;
+    }
+
+    .metric-label {
+      font-size: 15px;
+      color: #9CA3AF;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+
+    /* Tags & Pills */
+    .pill {
+      display: inline-block;
+      padding: 6px 14px;
+      border-radius: 12px;
+      font-size: 13px;
+      font-weight: 700;
+      margin-right: 8px;
+      margin-bottom: 8px;
+    }
+
+    .pill-cyan { background: rgba(0, 242, 254, 0.15); color: #00F2FE; border: 1px solid rgba(0, 242, 254, 0.4); }
+    .pill-purple { background: rgba(168, 85, 247, 0.15); color: #C084FC; border: 1px solid rgba(168, 85, 247, 0.4); }
+    .pill-emerald { background: rgba(16, 185, 129, 0.15); color: #34D399; border: 1px solid rgba(16, 185, 129, 0.4); }
+
+    /* Code Block */
+    .code-box {
+      font-family: 'JetBrains Mono', monospace, monospace;
+      background: #05070E;
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      border-radius: 12px;
+      padding: 14px 18px;
+      font-size: 14px;
+      color: #38BDF8;
+      line-height: 1.6;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- ================= SLIDE 1: COVER ================= -->
+  <div class="slide" id="slide-1">
+    <div class="slide-header">
+      <div class="brand-logo">
+        <div class="brand-icon">M</div>
+        <div class="brand-title">MitraKu AI</div>
+      </div>
+      <div class="slide-tag">HACKTIV8 x IBM SKILLSBUILD 2026</div>
+    </div>
+
+    <div style="margin: auto 0; max-width: 1300px;">
+      <div style="display: flex; gap: 12px; margin-bottom: 24px;">
+        <span class="pill pill-cyan">Productivity & Smart Business</span>
+        <span class="pill pill-purple">IBM Langflow RAG Engine</span>
+        <span class="pill pill-emerald">IBM Bob Co-Pilot</span>
+      </div>
+
+      <h1 class="slide-title" style="font-size: 72px; margin-bottom: 20px;">
+        Mitra Digital Cerdas<br>
+        <span class="gradient-text">Untuk UMKM Indonesia</span>
+      </h1>
+
+      <p class="slide-subtitle" style="font-size: 26px; color: #D1D5DB; max-width: 1000px; margin-bottom: 40px;">
+        "Satu Platform AI, Memecahkan Seluruh Masalah Pemasaran, Branding, dan Service 24 Jam Pelaku Usaha Mikro-Kecil."
+      </p>
+
+      <div style="display: flex; gap: 40px; border-top: 1px solid rgba(255, 255, 255, 0.12); padding-top: 26px;">
+        <div>
+          <div style="font-size: 14px; color: #9CA3AF; text-transform: uppercase; letter-spacing: 1px; font-weight: 700;">Pengembang</div>
+          <div style="font-size: 20px; font-weight: 700; color: #FFF; margin-top: 4px;">Jamaludin</div>
+          <div style="font-size: 14px; color: #9CA3AF;">Universitas Putra Bangsa Kebumen</div>
+        </div>
+        <div style="border-left: 1px solid rgba(255, 255, 255, 0.12); padding-left: 40px;">
+          <div style="font-size: 14px; color: #9CA3AF; text-transform: uppercase; letter-spacing: 1px; font-weight: 700;">Program</div>
+          <div style="font-size: 20px; font-weight: 700; color: #FFF; margin-top: 4px;">IBM SkillsBuild University Education</div>
+          <div style="font-size: 14px; color: #9CA3AF;">Hackathon Nasional Batch 1</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="slide-footer">
+      <div class="footer-left">
+        <span class="footer-badge">Final Pitch Deck</span>
+        <span>Single Source of Truth: MASTER_PROJECT.md</span>
+      </div>
+      <div>Slide 01 / 12</div>
+    </div>
+  </div>
+
+
+  <!-- ================= SLIDE 2: PROBLEM STATEMENT ================= -->
+  <div class="slide" id="slide-2">
+    <div class="slide-header">
+      <div class="brand-logo">
+        <div class="brand-icon">M</div>
+        <div class="brand-title">MitraKu AI</div>
+      </div>
+      <div class="slide-tag">PROBLEM STATEMENT</div>
+    </div>
+
+    <div>
+      <h1 class="slide-title">Tantangan Nyata <span class="gradient-text">64.2 Juta UMKM</span> Indonesia</h1>
+      <p class="slide-subtitle">Sebagian besar pelaku usaha mikro-kecil kalah bersaing di e-commerce dan sosial media karena keterbatasan sumber daya digital.</p>
+
+      <div class="grid-4" style="margin-top: 20px;">
+        <div class="glass-card">
+          <div class="icon-box icon-amber">💸</div>
+          <h3 style="font-size: 22px; font-weight: 700; margin-bottom: 12px; color: #FFF;">Keterbatasan Anggaran & SDM</h3>
+          <p style="color: #9CA3AF; line-height: 1.6; font-size: 15px;">
+            Tidak mampu merekrut tim marketing/copywriter profesional (biaya Rp 3M+/bulan) dan terpaksa mengerjakan semua aspek usaha sendiri.
+          </p>
+        </div>
+
+        <div class="glass-card">
+          <div class="icon-box icon-cyan">⏰</div>
+          <h3 style="font-size: 22px; font-weight: 700; margin-bottom: 12px; color: #FFF;">Respon CS Lambat (Kehilangan Sales)</h3>
+          <p style="color: #9CA3AF; line-height: 1.6; font-size: 15px;">
+            Pertanyaan calon pembeli tentang stok/harga di luar jam kerja tidak terbalas, menyebabkan calon pembeli pindah ke toko lain.
+          </p>
+        </div>
+
+        <div class="glass-card">
+          <div class="icon-box icon-purple">🎨</div>
+          <h3 style="font-size: 22px; font-weight: 700; margin-bottom: 12px; color: #FFF;">Visual & Identitas Brand Minim</h3>
+          <p style="color: #9CA3AF; line-height: 1.6; font-size: 15px;">
+            Tidak memiliki palet warna, logo, dan tone of voice yang konsisten, membuat brand terkesan tidak tepercaya.
+          </p>
+        </div>
+
+        <div class="glass-card">
+          <div class="icon-box icon-emerald">🔍</div>
+          <h3 style="font-size: 22px; font-weight: 700; margin-bottom: 12px; color: #FFF;">Buta SEO & Algoritma Marketplace</h3>
+          <p style="color: #9CA3AF; line-height: 1.6; font-size: 15px;">
+            Kesulitan menentukan kata kunci SEO Shopee/Tokopedia dan hook konten TikTok yang efektif untuk mendatangkan traffic.
+          </p>
+        </div>
+      </div>
+    </div>
+
+    <div class="slide-footer">
+      <div class="footer-left">
+        <span class="footer-badge">Latar Belakang</span>
+        <span>Data Kemenkop UKM & Survei Lapangan 2026</span>
+      </div>
+      <div>Slide 02 / 12</div>
+    </div>
+  </div>
+
+
+  <!-- ================= SLIDE 3: SOLUTION OVERVIEW ================= -->
+  <div class="slide" id="slide-3">
+    <div class="slide-header">
+      <div class="brand-logo">
+        <div class="brand-icon">M</div>
+        <div class="brand-title">MitraKu AI</div>
+      </div>
+      <div class="slide-tag">SOLUSI PRODUK</div>
+    </div>
+
+    <div>
+      <h1 class="slide-title">Solusi Terpadu: <span class="gradient-text">MitraKu AI Ecosystem</span></h1>
+      <p class="slide-subtitle">Satu platform AI dengan 5 modul spesifik yang memecahkan seluruh masalah operasional marketing UMKM.</p>
+
+      <div class="grid-5" style="margin-top: 10px;">
+        <div class="glass-card" style="border-top: 4px solid #00F2FE !important;">
+          <div style="font-size: 32px; margin-bottom: 15px;">🏪</div>
+          <h4 style="font-size: 18px; font-weight: 700; margin-bottom: 8px; color: #FFF;">1. Toko Pintar AI</h4>
+          <p style="font-size: 13px; color: #9CA3AF; line-height: 1.5;">Customer Service RAG 24/7 berbasis katalog produk aktual toko.</p>
+        </div>
+
+        <div class="glass-card" style="border-top: 4px solid #38BDF8 !important;">
+          <div style="font-size: 32px; margin-bottom: 15px;">📊</div>
+          <h4 style="font-size: 18px; font-weight: 700; margin-bottom: 8px; color: #FFF;">2. Riset Pasar Instan</h4>
+          <p style="font-size: 13px; color: #9CA3AF; line-height: 1.5;">Analisis rentang harga kompetitor & 5 kata kunci SEO teratas.</p>
+        </div>
+
+        <div class="glass-card" style="border-top: 4px solid #A855F7 !important;">
+          <div style="font-size: 32px; margin-bottom: 15px;">🎨</div>
+          <h4 style="font-size: 18px; font-weight: 700; margin-bottom: 8px; color: #FFF;">3. Brand Kit Generator</h4>
+          <p style="font-size: 13px; color: #9CA3AF; line-height: 1.5;">Pembuat aset visual identitas brand di-render ke Puppeteer PNG/PDF.</p>
+        </div>
+
+        <div class="glass-card" style="border-top: 4px solid #F59E0B !important;">
+          <div style="font-size: 32px; margin-bottom: 15px;">✍️</div>
+          <h4 style="font-size: 18px; font-weight: 700; margin-bottom: 8px; color: #FFF;">4. Copywriting Factory</h4>
+          <p style="font-size: 13px; color: #9CA3AF; line-height: 1.5;">Generator copy SEO Shopee, skrip TikTok, & IG storytelling.</p>
+        </div>
+
+        <div class="glass-card" style="border-top: 4px solid #10B981 !important;">
+          <div style="font-size: 32px; margin-bottom: 15px;">💬</div>
+          <h4 style="font-size: 18px; font-weight: 700; margin-bottom: 8px; color: #FFF;">5. Mitra Chat AI</h4>
+          <p style="font-size: 13px; color: #9CA3AF; line-height: 1.5;">Konsultan pemasaran interaktif yang paham kontekstual produk toko.</p>
+        </div>
+      </div>
+
+      <div class="glass-card" style="margin-top: 26px; padding: 22px; background: rgba(0, 242, 254, 0.08) !important; border: 1px solid rgba(0, 242, 254, 0.3) !important;">
+        <div style="display: flex; align-items: center; justify-content: space-between;">
+          <div>
+            <span style="font-weight: 800; color: #00F2FE; font-size: 18px;">💡 Pendekatan Human-Centric:</span>
+            <span style="color: #E5E7EB; font-size: 16px; margin-left: 10px;">Antarmuka berbahasa Indonesia yang hangat, tanpa prompt engineering rumit, dan dapat diakses dari smartphone.</span>
+          </div>
+          <span class="pill pill-cyan" style="margin: 0;">Multi-Channel Integration</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="slide-footer">
+      <div class="footer-left">
+        <span class="footer-badge">Arsitektur 5 Modul</span>
+        <span>Platform MitraKu AI</span>
+      </div>
+      <div>Slide 03 / 12</div>
+    </div>
+  </div>
+
+
+  <!-- ================= SLIDE 4: DEEP DIVE MODUL 1 & 2 ================= -->
+  <div class="slide" id="slide-4">
+    <div class="slide-header">
+      <div class="brand-logo">
+        <div class="brand-icon">M</div>
+        <div class="brand-title">MitraKu AI</div>
+      </div>
+      <div class="slide-tag">DEEP DIVE MODUL (1 & 2)</div>
+    </div>
+
+    <div>
+      <h1 class="slide-title">Toko Pintar AI & <span class="gradient-text">Riset Pasar Instan</span></h1>
+      <p class="slide-subtitle">Otomatisasi Customer Service RAG 24/7 dan Intelijen Kompetitor E-Commerce.</p>
+
+      <div class="grid-2">
+        <div class="glass-card">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+            <h3 style="font-size: 24px; font-weight: 700; color: #00F2FE;">🏪 Modul 1: Toko Pintar AI (RAG CS)</h3>
+            <span class="pill pill-purple">IBM Langflow + AstraDB</span>
+          </div>
+          <ul style="color: #D1D5DB; line-height: 1.8; font-size: 16px; padding-left: 20px; margin-bottom: 20px;">
+            <li><strong>Knowledge Ingestion:</strong> UMKM memasukkan katalog toko ➔ Otomatis di-embed ke Astra DB Vector Store.</li>
+            <li><strong>RAG Chatbot Simulation:</strong> Menjawab pertanyaan harga, stok, & pengiriman dengan sapaan ramah "Kak".</li>
+            <li><strong>Zero Hallucination:</strong> Jawaban strictly berbasis katalog. Jika barang kosong, AI merekomendasikan alternatif secara halus.</li>
+            <li><strong>Widget & Shareable Link:</strong> Menyediakan kode iframe embed untuk dipasang langsung di website toko UMKM.</li>
+          </ul>
+          <div class="code-box">
+            GET/POST /api/toko-pintar/catalog<br>
+            POST /api/toko-pintar/chat (Hybrid RAG ➔ Fallback LLM)
+          </div>
+        </div>
+
+        <div class="glass-card">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+            <h3 style="font-size: 24px; font-weight: 700; color: #38BDF8;">📊 Modul 2: Riset Pasar Instan</h3>
+            <span class="pill pill-cyan">Market Intelligence</span>
+          </div>
+          <ul style="color: #D1D5DB; line-height: 1.8; font-size: 16px; padding-left: 20px; margin-bottom: 20px;">
+            <li><strong>Pricing Benchmarking:</strong> Menganalisis estimasi rentang harga kompetitor sejenis di e-commerce.</li>
+            <li><strong>3 Strategi Diferensiasi:</strong> Memberikan panduan membuat keunggulan unik produk (USP).</li>
+            <li><strong>5 Keywords SEO E-Commerce:</strong> Kata kunci pencarian teratas dengan tombol <em>1-Click Copy</em>.</li>
+            <li><strong>Channel Matchmaking:</strong> Rekomendasi platform (Shopee vs TikTok Shop vs IG) yang paling pas untuk kategori produk.</li>
+          </ul>
+          <div class="code-box">
+            POST /api/market-research<br>
+            Payload: { productName, category, currentPrice }
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="slide-footer">
+      <div class="footer-left">
+        <span class="footer-badge">Fitur Utama</span>
+        <span>Modul 1 & Modul 2</span>
+      </div>
+      <div>Slide 04 / 12</div>
+    </div>
+  </div>
+
+
+  <!-- ================= SLIDE 5: DEEP DIVE MODUL 3, 4 & 5 ================= -->
+  <div class="slide" id="slide-5">
+    <div class="slide-header">
+      <div class="brand-logo">
+        <div class="brand-icon">M</div>
+        <div class="brand-title">MitraKu AI</div>
+      </div>
+      <div class="slide-tag">DEEP DIVE MODUL (3, 4 & 5)</div>
+    </div>
+
+    <div>
+      <h1 class="slide-title">Brand Kit, Copywriting, <span class="gradient-text">& Mitra Chat</span></h1>
+      <p class="slide-subtitle">Generator aset visual profesional, mesin konten sosial media, dan konsultan pemasaran.</p>
+
+      <div class="grid-3">
+        <div class="glass-card">
+          <h3 style="font-size: 22px; font-weight: 700; color: #A855F7; margin-bottom: 12px;">🎨 Brand Kit Generator</h3>
+          <p style="color: #9CA3AF; font-size: 14px; margin-bottom: 16px; line-height: 1.6;">
+            Mengubah jenis usaha & kepribadian brand menjadi aset visual lengkap (Tagline, Story, Hex Palette, Tone of Voice, 10 Ide Konten).
+          </p>
+          <div style="background: rgba(168, 85, 247, 0.15) !important; padding: 12px; border-radius: 10px; border: 1px solid rgba(168, 85, 247, 0.4) !important; font-size: 13px; color: #E9D5FF; font-weight: 600;">
+            ⚙️ Puppeteer Rendering Engine: Mengkonversi HTML Template cantik menjadi High-Res PNG/PDF.
+          </div>
+        </div>
+
+        <div class="glass-card">
+          <h3 style="font-size: 22px; font-weight: 700; color: #F59E0B; margin-bottom: 12px;">✍️ Copywriting Factory</h3>
+          <p style="color: #9CA3AF; font-size: 14px; margin-bottom: 16px; line-height: 1.6;">
+            Mesin teks teroptimasi algoritma 3 platform utama dengan fitur 1-klik salin ke clipboard:
+          </p>
+          <ul style="color: #D1D5DB; font-size: 13px; line-height: 1.7; padding-left: 16px;">
+            <li><strong>Shopee/Tokopedia:</strong> Judul SEO + Deskripsi 1500 Karakter</li>
+            <li><strong>TikTok/Reels:</strong> Hook 3 Detik + Skrip 30 Detik</li>
+            <li><strong>Instagram:</strong> Caption Storytelling + CTA + 20 Hashtag</li>
+          </ul>
+        </div>
+
+        <div class="glass-card">
+          <h3 style="font-size: 22px; font-weight: 700; color: #10B981; margin-bottom: 12px;">💬 Mitra Chat AI</h3>
+          <p style="color: #9CA3AF; font-size: 14px; margin-bottom: 16px; line-height: 1.6;">
+            Chatbot konsultan bisnis interaktif yang memiliki pemahaman kontekstual terhadap produk aktif UMKM.
+          </p>
+
+          <div style="background: rgba(16, 185, 129, 0.15) !important; padding: 12px; border-radius: 10px; border: 1px solid rgba(16, 185, 129, 0.4) !important; font-size: 13px; color: #A7F3D0; font-weight: 600;">
+            💡 Dynamic System Prompt Injector + Real Regeneration Engine.
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="slide-footer">
+      <div class="footer-left">
+        <span class="footer-badge">Fitur Utama</span>
+        <span>Modul 3, 4 & 5</span>
+      </div>
+      <div>Slide 05 / 12</div>
+    </div>
+  </div>
+
+
+  <!-- ================= SLIDE 6: SYSTEM ARCHITECTURE ================= -->
+  <div class="slide" id="slide-6">
+    <div class="slide-header">
+      <div class="brand-logo">
+        <div class="brand-icon">M</div>
+        <div class="brand-title">MitraKu AI</div>
+      </div>
+      <div class="slide-tag">SYSTEM ARCHITECTURE</div>
+    </div>
+
+    <div>
+      <h1 class="slide-title">Arsitektur Sistem & <span class="gradient-text">Tech Stack</span></h1>
+      <p class="slide-subtitle">Infrastruktur 3-Tier yang handal, cepat, dan scalable untuk kebutuhan skala UMKM hingga enterprise.</p>
+
+      <div class="grid-3" style="margin-top: 20px;">
+        <!-- Tier 1 -->
+        <div class="glass-card">
+          <div class="pill pill-cyan" style="margin-bottom: 16px;">LAYER 1 — FRONTEND</div>
+          <h3 style="font-size: 22px; font-weight: 700; margin-bottom: 12px; color: #FFF;">Modern Web Interface</h3>
+          <p style="color: #9CA3AF; font-size: 14px; line-height: 1.6; margin-bottom: 20px;">
+            Next.js / Responsive Single-Page Application dengan Tab Switcher 6 Modul, Live Simulation, dan High-Res Preview Canvas.
+          </p>
+          <div style="font-size: 13px; color: #00F2FE;">
+            • Vanilla CSS Glassmorphism<br>
+            • LocalStorage Budget Protection<br>
+            • Embed Code Widget Iframe Generator
+          </div>
+        </div>
+
+        <!-- Tier 2 -->
+        <div class="glass-card" style="border: 1px solid rgba(0, 242, 254, 0.4) !important;">
+          <div class="pill pill-purple" style="margin-bottom: 16px;">LAYER 2 — BACKEND API</div>
+          <h3 style="font-size: 22px; font-weight: 700; margin-bottom: 12px; color: #FFF;">Node.js Express Server</h3>
+          <p style="color: #9CA3AF; font-size: 14px; line-height: 1.6; margin-bottom: 20px;">
+            Express REST API middleware yang dirancang bersama **IBM Bob** untuk mengelola aliran data, validasi, dan rendering dokumen.
+          </p>
+          <div style="font-size: 13px; color: #C084FC;">
+            • Puppeteer PDF/PNG Generator<br>
+            • Config Persistence (`data/langflow-config.json`)
+          </div>
+        </div>
+
+        <!-- Tier 3 -->
+        <div class="glass-card">
+          <div class="pill pill-emerald" style="margin-bottom: 16px;">LAYER 3 — AI & RAG ENGINE</div>
+          <h3 style="font-size: 22px; font-weight: 700; margin-bottom: 12px; color: #FFF;">IBM Langflow + LLM</h3>
+          <p style="color: #9CA3AF; font-size: 14px; line-height: 1.6; margin-bottom: 20px;">
+            Mesin orchestrator RAG cerdas yang memproses pencarian vektor produk dan merespons query pelanggan.
+          </p>
+          <div style="font-size: 13px; color: #34D399;">
+            • IBM Langflow Workflow Orchestrator<br>
+            • Astra DB Vector Store Engine<br>
+            • Gemini 2.0 Flash & Groq Fallback
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="slide-footer">
+      <div class="footer-left">
+        <span class="footer-badge">Teknologi</span>
+        <span>Arsitektur Sistem MitraKu AI</span>
+      </div>
+      <div>Slide 06 / 12</div>
+    </div>
+  </div>
+
+
+  <!-- ================= SLIDE 7: IBM LANGFLOW INTEGRATION ================= -->
+  <div class="slide" id="slide-7">
+    <div class="slide-header">
+      <div class="brand-logo">
+        <div class="brand-icon">M</div>
+        <div class="brand-title">MitraKu AI</div>
+      </div>
+      <div class="slide-tag">IBM LANGFLOW INTEGRATION</div>
+    </div>
+
+    <div>
+      <h1 class="slide-title">Peran <span class="gradient-purple">IBM Langflow</span> Dalam Sistem</h1>
+      <p class="slide-subtitle">Visual RAG Orchestration Engine yang mentransformasi data katalog UMKM menjadi agen cerdas 24 jam.</p>
+
+      <div class="grid-2" style="margin-top: 10px;">
+        <div class="glass-card">
+          <h3 style="font-size: 22px; font-weight: 700; color: #C084FC; margin-bottom: 16px;">Workflow & Components (`Mitraku AI.json`)</h3>
+          <div style="display: flex; flex-direction: column; gap: 14px;">
+            <div style="background: rgba(255,255,255,0.05); padding: 14px; border-radius: 10px; border-left: 4px solid #A855F7;">
+              <strong style="color: #FFF;">1. Ingestion Pipeline Node:</strong> <span style="color: #D1D5DB;">Mengonversi katalog JSON produk toko menjadi chunk teks vektor ber-metadata.</span>
+            </div>
+            <div style="background: rgba(255,255,255,0.05); padding: 14px; border-radius: 10px; border-left: 4px solid #A855F7;">
+              <strong style="color: #FFF;">2. Astra DB Vector Store Node:</strong> <span style="color: #D1D5DB;">Tempat penyimpanan embedding katalog berkecepatan tinggi untuk similarity search.</span>
+            </div>
+            <div style="background: rgba(255,255,255,0.05); padding: 14px; border-radius: 10px; border-left: 4px solid #A855F7;">
+              <strong style="color: #FFF;">3. Prompt Chainer & LLM Node:</strong> <span style="color: #D1D5DB;">Menggabungkan pertanyaan pembeli dengan fakta katalog untuk menghasilkan jawaban CS yang sopan.</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="glass-card">
+          <h3 style="font-size: 22px; font-weight: 700; color: #00F2FE; margin-bottom: 16px;">Keunggulan Penggunaan Langflow</h3>
+          <ul style="color: #D1D5DB; line-height: 1.8; font-size: 15px; padding-left: 20px;">
+            <li><strong>Modul Visual & Modular:</strong> Memudahkan perancangan agen AI tanpa perlu menulis kode RAG kompleks dari awal.</li>
+            <li><strong>Dukungan Multi-Model:</strong> Terintegrasi dengan watsonx.ai, Gemini, dan provider LLM terkemuka secara seamless.</li>
+            <li><strong>Dynamic Context Memory:</strong> Menjaga konteks percakapan pembeli selama sesi interaksi toko online.</li>
+            <li><strong>Fast Vector Search:</strong> Mengidentifikasi varian produk dan info stok dalam hitungan milidetik.</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <div class="slide-footer">
+      <div class="footer-left">
+        <span class="footer-badge">IBM Langflow</span>
+        <span>RAG Workflow Engine</span>
+      </div>
+      <div>Slide 07 / 12</div>
+    </div>
+  </div>
+
+
+  <!-- ================= SLIDE 8: IBM BOB INTEGRATION ================= -->
+  <div class="slide" id="slide-8">
+    <div class="slide-header">
+      <div class="brand-logo">
+        <div class="brand-icon">M</div>
+        <div class="brand-title">MitraKu AI</div>
+      </div>
+      <div class="slide-tag">IBM BOB INTEGRATION</div>
+    </div>
+
+    <div>
+      <h1 class="slide-title">Peran <span class="gradient-text">IBM Bob</span> Sebagai AI Co-Pilot</h1>
+      <p class="slide-subtitle">Mempercepat siklus pengembangan, optimasi arsitektur kode, dan ketahanan sistem.</p>
+
+      <div class="grid-3" style="margin-top: 20px;">
+        <div class="glass-card">
+          <div class="icon-box icon-cyan">⚙️</div>
+          <h3 style="font-size: 20px; font-weight: 700; margin-bottom: 10px; color: #FFF;">REST Middleware Design</h3>
+          <p style="color: #9CA3AF; font-size: 14px; line-height: 1.6;">
+            IBM Bob membantu menyusun rancangan REST API adapter di Node.js Express (`/api/toko-pintar/chat` & `/api/config`) yang efisien dan aman.
+          </p>
+        </div>
+
+        <div class="glass-card">
+          <div class="icon-box icon-purple">🐋</div>
+          <h3 style="font-size: 20px; font-weight: 700; margin-bottom: 10px; color: #FFF;">Docker Multi-Stage Setup</h3>
+          <p style="color: #9CA3AF; font-size: 14px; line-height: 1.6;">
+            Mengoptimalkan `docker-compose.yml` dan `Dockerfile` dengan Alpine Chromium & font dependencies agar Puppeteer dapat merender visual dengan sempurna.
+          </p>
+        </div>
+
+        <div class="glass-card">
+          <div class="icon-box icon-emerald">🛡️</div>
+          <h3 style="font-size: 20px; font-weight: 700; margin-bottom: 10px; color: #FFF;">Resilient Fallback Pipeline</h3>
+          <p style="color: #9CA3AF; font-size: 14px; line-height: 1.6;">
+            Membangun sistem *graceful fallback* bertingkat: Jika endpoint Langflow tidak merespons, sistem otomatis beralih ke Gemini 2.0 Flash / Groq tanpa membuat aplikasi error.
+          </p>
+        </div>
+      </div>
+    </div>
+
+    <div class="slide-footer">
+      <div class="footer-left">
+        <span class="footer-badge">IBM Bob</span>
+        <span>Developer Tooling & Automation</span>
+      </div>
+      <div>Slide 08 / 12</div>
+    </div>
+  </div>
+
+
+  <!-- ================= SLIDE 9: SYNERGY LANGFLOW + BOB ================= -->
+  <div class="slide" id="slide-9">
+    <div class="slide-header">
+      <div class="brand-logo">
+        <div class="brand-icon">M</div>
+        <div class="brand-title">MitraKu AI</div>
+      </div>
+      <div class="slide-tag">INTEGRASI LANGFLOW + BOB</div>
+    </div>
+
+    <div>
+      <h1 class="slide-title">Sinergi Terpadu: <span class="gradient-text">Langflow + Bob</span></h1>
+      <p class="slide-subtitle">Bagaimana IBM Langflow dan IBM Bob berkolaborasi menciptakan sistem RAG yang solid.</p>
+
+      <div class="flow-container" style="margin-top: 30px;">
+        <div class="flow-step">
+          <div style="font-size: 14px; color: #00F2FE; font-weight: 700; margin-bottom: 6px;">LANGKAH 1</div>
+          <h4 style="font-size: 18px; margin-bottom: 8px; color: #FFF;">User Input Katalog</h4>
+          <p style="font-size: 13px; color: #9CA3AF;">UMKM menginput produk di Frontend.</p>
+        </div>
+
+        <div class="flow-arrow">➔</div>
+
+        <div class="flow-step" style="border-color: rgba(168, 85, 247, 0.4) !important;">
+          <div style="font-size: 14px; color: #C084FC; font-weight: 700; margin-bottom: 6px;">LANGKAH 2 (IBM BOB)</div>
+          <h4 style="font-size: 18px; margin-bottom: 8px; color: #FFF;">Express Middleware</h4>
+          <p style="font-size: 13px; color: #9CA3AF;">Bob API Adapter memformat payload JSON.</p>
+        </div>
+
+        <div class="flow-arrow">➔</div>
+
+        <div class="flow-step" style="border-color: rgba(0, 242, 254, 0.4) !important;">
+          <div style="font-size: 14px; color: #00F2FE; font-weight: 700; margin-bottom: 6px;">LANGKAH 3 (LANGFLOW)</div>
+          <h4 style="font-size: 18px; margin-bottom: 8px; color: #FFF;">Vector Search & RAG</h4>
+          <p style="font-size: 13px; color: #9CA3AF;">Langflow + AstraDB melakukan similarity match.</p>
+        </div>
+
+        <div class="flow-arrow">➔</div>
+
+        <div class="flow-step" style="border-color: rgba(16, 185, 129, 0.4) !important;">
+          <div style="font-size: 14px; color: #34D399; font-weight: 700; margin-bottom: 6px;">LANGKAH 4</div>
+          <h4 style="font-size: 18px; margin-bottom: 8px; color: #FFF;">Jawaban CS Instan</h4>
+          <p style="font-size: 13px; color: #9CA3AF;">Hasil RAG dikembalikan ke pembeli 24/7.</p>
+        </div>
+      </div>
+
+      <div class="glass-card" style="margin-top: 40px; padding: 26px; border: 1px solid rgba(255,255,255,0.15) !important;">
+        <h4 style="font-size: 20px; font-weight: 700; color: #FFF; margin-bottom: 10px;">Nilai Tambah Integrasi Terpadu:</h4>
+        <p style="color: #D1D5DB; line-height: 1.6; font-size: 16px;">
+          Tanpa IBM Bob, pembuatan adapter backend dan error handling akan memakan waktu lama. Tanpa IBM Langflow, alur RAG Runtimes akan sulit dikelola. Kombinasi keduanya menciptakan aplikasi berkelas *production-ready* dalam waktu singkat.
+        </p>
+      </div>
+    </div>
+
+    <div class="slide-footer">
+      <div class="footer-left">
+        <span class="footer-badge">Sinergi Integrasi</span>
+        <span>Alur Data Sistem Terpadu</span>
+      </div>
+      <div>Slide 09 / 12</div>
+    </div>
+  </div>
+
+
+  <!-- ================= SLIDE 10: IMPACT & METRICS ================= -->
+  <div class="slide" id="slide-10">
+    <div class="slide-header">
+      <div class="brand-logo">
+        <div class="brand-icon">M</div>
+        <div class="brand-title">MitraKu AI</div>
+      </div>
+      <div class="slide-tag">DAMPAK TERUKUR</div>
+    </div>
+
+    <div>
+      <h1 class="slide-title">Dampak & <span class="gradient-emerald">Hasil Terukur</span></h1>
+      <p class="slide-subtitle">Metrik dampak nyata yang dihasilkan MitraKu AI bagi operasional UMKM Indonesia.</p>
+
+      <div class="grid-4" style="margin-top: 30px;">
+        <div class="glass-card" style="text-align: center; border-top: 4px solid #10B981 !important;">
+          <div class="metric-value gradient-emerald">96%</div>
+          <div class="metric-label">Penghematan Waktu</div>
+          <p style="font-size: 14px; color: #9CA3AF; margin-top: 10px;">Pembuatan copy & riset dari 30 menit menjadi &lt;1 menit.</p>
+        </div>
+
+        <div class="glass-card" style="text-align: center; border-top: 4px solid #00F2FE !important;">
+          <div class="metric-value gradient-text">Rp 3M</div>
+          <div class="metric-label">Hemat Cost / Bulan</div>
+          <p style="font-size: 14px; color: #9CA3AF; margin-top: 10px;">Menggantikan kebutuhan sewa jasa agency / staf khusus per UMKM.</p>
+        </div>
+
+        <div class="glass-card" style="text-align: center; border-top: 4px solid #A855F7 !important;">
+          <div class="metric-value gradient-purple">100%</div>
+          <div class="metric-label">CS Responsiveness</div>
+          <p style="font-size: 14px; color: #9CA3AF; margin-top: 10px;">Pertanyaan pembeli terbalas 24/7 tanpa ada leads yang terbuang.</p>
+        </div>
+
+        <div class="glass-card" style="text-align: center; border-top: 4px solid #F59E0B !important;">
+          <div class="metric-value" style="color: #F59E0B;">&gt;1.000</div>
+          <div class="metric-label">Target UMKM / Bulan</div>
+          <p style="font-size: 14px; color: #9CA3AF; margin-top: 10px;">Potensi jangkauan UMKM yang dapat terbantu pada fase awal rilis.</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="slide-footer">
+      <div class="footer-left">
+        <span class="footer-badge">Impact Metrics</span>
+        <span>Hasil Evaluasi MitraKu AI</span>
+      </div>
+      <div>Slide 10 / 12</div>
+    </div>
+  </div>
+
+
+  <!-- ================= SLIDE 11: SCALABILITY & ROADMAP ================= -->
+  <div class="slide" id="slide-11">
+    <div class="slide-header">
+      <div class="brand-logo">
+        <div class="brand-icon">M</div>
+        <div class="brand-title">MitraKu AI</div>
+      </div>
+      <div class="slide-tag">ROADMAP & SKALABILITAS</div>
+    </div>
+
+    <div>
+      <h1 class="slide-title">Potensi Pengembangan <span class="gradient-text">& Roadmap</span></h1>
+      <p class="slide-subtitle">Rencana ekspansi solusi MitraKu AI menuju platform digital marketing UMKM skala nasional.</p>
+
+      <div class="grid-3" style="margin-top: 20px;">
+        <div class="glass-card">
+          <div class="pill pill-cyan" style="margin-bottom: 16px;">FASE 1 — SAAS SKALABEL</div>
+          <h3 style="font-size: 22px; font-weight: 700; margin-bottom: 12px; color: #FFF;">Multi-Tenant Enterprise</h3>
+          <p style="color: #9CA3AF; font-size: 14px; line-height: 1.6;">
+            Migrasi frontend ke Next.js 15 App Router & Auth (Clerk/NextAuth) untuk mendukung manajemen multi-toko & multi-pengguna.
+          </p>
+        </div>
+
+        <div class="glass-card">
+          <div class="pill pill-purple" style="margin-bottom: 16px;">FASE 2 — WHATSAPP BOT</div>
+          <h3 style="font-size: 22px; font-weight: 700; margin-bottom: 12px; color: #FFF;">WhatsApp API Direct Bot</h3>
+          <p style="color: #9CA3AF; font-size: 14px; line-height: 1.6;">
+            Menghubungkan Toko Pintar RAG CS (Langflow) secara langsung ke WhatsApp Business API toko UMKM agar pembeli dapat melakukan order via WA.
+          </p>
+        </div>
+
+        <div class="glass-card">
+          <div class="pill pill-emerald" style="margin-bottom: 16px;">FASE 3 — AUTO SYNC</div>
+          <h3 style="font-size: 22px; font-weight: 700; margin-bottom: 12px; color: #FFF;">Marketplace Direct Sync</h3>
+          <p style="color: #9CA3AF; font-size: 14px; line-height: 1.6;">
+            Integrasi API dengan Shopee/Tokopedia untuk sinkronisasi otomatis katalog produk & stok ke Astra DB tanpa perlu input manual.
+          </p>
+        </div>
+      </div>
+    </div>
+
+    <div class="slide-footer">
+      <div class="footer-left">
+        <span class="footer-badge">Roadmap Masa Depan</span>
+        <span>Rencana Pengembangan MitraKu AI</span>
+      </div>
+      <div>Slide 11 / 12</div>
+    </div>
+  </div>
+
+
+  <!-- ================= SLIDE 12: CLOSING ================= -->
+  <div class="slide" id="slide-12">
+    <div class="slide-header">
+      <div class="brand-logo">
+        <div class="brand-icon">M</div>
+        <div class="brand-title">MitraKu AI</div>
+      </div>
+      <div class="slide-tag">PENUTUP & Q&A</div>
+    </div>
+
+    <div style="margin: auto 0; text-align: center;">
+      <h1 class="slide-title" style="font-size: 68px; margin-bottom: 24px;">
+        Terima Kasih! <br>
+        <span class="gradient-text">MitraKu AI — Empowering UMKMs</span>
+      </h1>
+
+      <p class="slide-subtitle" style="font-size: 24px; color: #D1D5DB; max-width: 1000px; margin: 0 auto 40px auto;">
+        "Mari Bersama Memajukan UMKM Indonesia Melalui Inovasi Digital & Teknologi AI Terpadu."
+      </p>
+
+      <div style="display: inline-flex; gap: 30px; background: rgba(17, 24, 39, 0.9); padding: 20px 40px; border-radius: 20px; border: 1px solid rgba(255, 255, 255, 0.15);">
+        <div>
+          <div style="font-size: 13px; color: #9CA3AF; text-transform: uppercase;">Project Leader</div>
+          <div style="font-size: 18px; font-weight: 700; color: #FFF;">Jamaludin</div>
+        </div>
+        <div style="border-left: 1px solid rgba(255, 255, 255, 0.15); padding-left: 30px;">
+          <div style="font-size: 13px; color: #9CA3AF; text-transform: uppercase;">Institusi</div>
+          <div style="font-size: 18px; font-weight: 700; color: #FFF;">Universitas Putra Bangsa</div>
+        </div>
+        <div style="border-left: 1px solid rgba(255, 255, 255, 0.15); padding-left: 30px;">
+          <div style="font-size: 13px; color: #9CA3AF; text-transform: uppercase;">Program</div>
+          <div style="font-size: 18px; font-weight: 700; color: #00F2FE;">Hacktiv8 x IBM SkillsBuild 2026</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="slide-footer">
+      <div class="footer-left">
+        <span class="footer-badge">Akhir Presentasi</span>
+        <span>MitraKu AI Pitch Deck</span>
+      </div>
+      <div>Slide 12 / 12</div>
+    </div>
+  </div>
+
+</body>
+</html>

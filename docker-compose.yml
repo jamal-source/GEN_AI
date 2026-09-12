@@ -50,11 +50,13 @@ services:
     environment:
       - LANGFLOW_HOST=0.0.0.0
       - LANGFLOW_PORT=7860
+      - LANGFLOW_DATABASE_URL=sqlite:////app/langflow/langflow.db
       - LANGFLOW_NUM_WORKERS=1
       - LANGFLOW_AUTO_LOGIN=true
       - LANGFLOW_SUPERUSER_USERNAME=admin
       - LANGFLOW_SUPERUSER_PASSWORD=admin
       - GEMINI_API_KEY=${GEMINI_API_KEY}
+      - GOOGLE_API_KEY=${GEMINI_API_KEY}
       - GROQ_API_KEY=${GROQ_API_KEY}
     volumes:
       - langflow_data:/app/langflow
