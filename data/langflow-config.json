@@ -1,0 +1,9 @@
+{
+  "langflowUrl": "http://mitraku_langflow:7860",
+  "ingestionFlowId": "301d95f5-0875-4377-a5bf-75d0a8168e14",
+  "ragFlowId": "301d95f5-0875-4377-a5bf-75d0a8168e14",
+  "astraToken": "",
+  "astraEndpoint": "",
+  "astraCollection": "mitraku_catalog",
+  "apiKey": ""
+}

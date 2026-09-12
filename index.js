@@ -105,6 +105,127 @@ app.use(express.static(path.join(__dirname, 'public'), {
   }
 }));
 
+// ── Langflow / AstraDB runtime config (persisted ke data/langflow-config.json) ─
+let langflowConfig = {
+  langflowUrl:       process.env.LANGFLOW_URL        || 'http://mitraku_langflow:7860',
+  ingestionFlowId:   process.env.LANGFLOW_INGESTION_FLOW_ID || '',
+  ragFlowId:         process.env.LANGFLOW_RAG_FLOW_ID       || '',
+  astraToken:        process.env.ASTRA_DB_APPLICATION_TOKEN  || '',
+  astraEndpoint:     process.env.ASTRA_DB_API_ENDPOINT       || '',
+  astraCollection:   process.env.ASTRA_DB_COLLECTION         || 'mitraku_catalog',
+  apiKey:            process.env.LANGFLOW_API_KEY            || '',
+};
+
+// ── GET /api/config ───────────────────────────────────────────
+app.get('/api/config', (_req, res) => {
+  // mask sensitive fields — only show first 18 chars
+  const masked = { ...langflowConfig };
+  if (masked.astraToken) masked.astraToken = masked.astraToken.slice(0, 18) + '…';
+  if (masked.apiKey)     masked.apiKey     = masked.apiKey.slice(0, 6)     + '…';
+  res.json({ ...masked, langflowEnabled: !!(langflowConfig.langflowUrl && langflowConfig.ragFlowId) });
+});
+
+const isHttpUrl = v => v && /^https?:\/\/\S+/i.test(String(v).trim());
+
+// ── POST /api/config ──────────────────────────────────────────
+app.post('/api/config', (req, res) => {
+  const { langflowUrl, ingestionFlowId, ragFlowId, astraToken, astraEndpoint, astraCollection, apiKey } = req.body;
+
+  // Token/nilai dari GET sudah dimask (mis. "AstraCS:xxx…") — JANGAN timpa
+  // nilai asli di server dengan string mask saat user menyimpan tanpa edit ulang.
+  const isMasked = v => typeof v === 'string' && /…/.test(v);
+  const set = (key, val) => {
+    if (val === undefined) return;
+    const v = typeof val === 'string' ? val.trim() : val;
+    if (v !== '') langflowConfig[key] = v;
+  };
+
+  if (langflowUrl !== undefined && langflowUrl.trim() && !isHttpUrl(langflowUrl)) {
+    return res.status(400).json({ error: 'URL Langflow harus diawali http:// atau https://' });
+  }
+  if (astraEndpoint !== undefined && astraEndpoint.trim() && !isHttpUrl(astraEndpoint)) {
+    return res.status(400).json({ error: 'AstraDB API Endpoint harus diawali https://' });
+  }
+
+  set('langflowUrl', langflowUrl);
+  set('ingestionFlowId', ingestionFlowId);
+  set('ragFlowId', ragFlowId);
+  if (astraToken !== undefined && !isMasked(astraToken)) set('astraToken', astraToken);
+  set('astraEndpoint', astraEndpoint);
+  set('astraCollection', astraCollection);
+  if (apiKey !== undefined && !isMasked(apiKey))    set('apiKey', apiKey);
+
+  saveLangflowConfig();
+  res.json({ success: true, langflowEnabled: !!(langflowConfig.langflowUrl && langflowConfig.ragFlowId) });
+});
+
+// ── POST /api/test-langflow ───────────────────────────────────
+app.post('/api/test-langflow', async (_req, res) => {
+  const { langflowUrl, ragFlowId } = langflowConfig;
+  if (!langflowUrl || !ragFlowId) {
+    return res.status(400).json({ ok: false, error: 'Langflow URL atau RAG Flow ID belum diisi.' });
+  }
+  try {
+    const healthRes = await fetch(`${langflowUrl}/health`, {
+      signal: AbortSignal.timeout(5000)
+    });
+    if (!healthRes.ok) throw new Error(`HTTP ${healthRes.status}`);
+    res.json({ ok: true, message: 'Langflow Server Aktif & Terhubung ✓' });
+  } catch (err) {
+    res.json({ ok: false, error: err.message || 'Tidak bisa terhubung ke Langflow.' });
+  }
+});
+
+// ── Helper: run a Langflow flow (RAG chat or ingestion) ──────
+async function langflowRun(flowId, input, { sessionId } = {}) {
+  const { langflowUrl, apiKey, astraToken, astraEndpoint, astraCollection } = langflowConfig;
+  if (!langflowUrl || !flowId) throw new Error('Langflow belum dikonfigurasi.');
+  const headers = { 'Content-Type': 'application/json' };
+  if (apiKey) {
+    headers['x-api-key'] = apiKey;
+    headers['Authorization'] = `Bearer ${apiKey}`;
+  }
+  const astraTweaks = {
+    token: astraToken,
+    api_endpoint: astraEndpoint,
+    collection_name: astraCollection
+  };
+  const res = await fetch(`${langflowUrl}/api/v1/run/${flowId}?stream=false`, {
+    method: 'POST',
+    headers,
+    body: JSON.stringify({
+      input_value: input,
+      session_id: sessionId,
+      tweaks: { "AstraDB-1": astraTweaks, "AstraDB-2": astraTweaks }
+    }),
+    signal: AbortSignal.timeout(30000)
+  });
+  if (!res.ok) throw new Error(`Langflow HTTP ${res.status}`);
+  const data = await res.json();
+  return data?.outputs?.[0]?.outputs?.[0]?.results?.message?.text
+      || data?.outputs?.[0]?.outputs?.[0]?.messages?.[0]?.message
+      || data?.result;
+}
+
+// ── Helper: trigger Langflow ingestion flow (fire-and-forget) ─
+async function triggerLangflowIngestion(input) {
+  if (!langflowConfig.ingestionFlowId) return; // skip silently if not configured
+  try {
+    await langflowRun(langflowConfig.ingestionFlowId, input);
+    console.log('[langflow] Ingestion triggered OK');
+  } catch (err) {
+    console.warn('[langflow] Ingestion failed (non-fatal):', err.message);
+  }
+}
+
+// ── Helper: render a catalog list as text for ingestion ───────
+function catalogToText(catalog, storeId) {
+  return catalog.map(p =>
+    `Produk: ${p.name} | Kategori: ${p.category} | Harga: Rp${p.price} | Stok: ${p.stock} | ${p.description} | Pengiriman: ${p.shipping_info} | store_id: ${storeId}`
+  ).join('\n');
+}
+
+
 // ── GET /api/providers ────────────────────────────────────────
 app.get('/api/providers', (_req, res) => {
   res.json({
@@ -664,6 +785,37 @@ function saveCatalogs(catalogs) {
 
 let storeCatalogs = loadCatalogs();
 
+// ── Persistensi konfigurasi Langflow/AstraDB (survive restart server) ──
+const CONFIG_FILE = path.join(DATA_DIR, 'langflow-config.json');
+
+function loadLangflowConfig() {
+  try {
+    if (!fs.existsSync(CONFIG_FILE)) return;
+    const saved = JSON.parse(fs.readFileSync(CONFIG_FILE, 'utf8'));
+    if (saved && typeof saved === 'object') {
+      Object.keys(saved).forEach(k => {
+        if (k in langflowConfig && typeof saved[k] === 'string' && saved[k]) {
+          langflowConfig[k] = saved[k];
+        }
+      });
+    }
+    console.log('[config] Langflow config dimuat dari file.');
+  } catch (err) {
+    console.warn('[config] Gagal load file config:', err.message);
+  }
+}
+
+function saveLangflowConfig() {
+  try {
+    if (!fs.existsSync(DATA_DIR)) fs.mkdirSync(DATA_DIR, { recursive: true });
+    fs.writeFileSync(CONFIG_FILE, JSON.stringify(langflowConfig, null, 2), 'utf8');
+  } catch (err) {
+    console.warn('[config] Gagal simpan file config:', err.message);
+  }
+}
+
+loadLangflowConfig();
+
 // GET /api/toko-pintar/catalog
 app.get('/api/toko-pintar/catalog', (req, res) => {
   const storeId = req.query.store_id || 'default';
@@ -694,35 +846,57 @@ app.post('/api/toko-pintar/catalog', (req, res) => {
 
   storeCatalogs[store_id].unshift(newProd);
   saveCatalogs(storeCatalogs);
-
   res.json({ success: true, product: newProd, catalog: storeCatalogs[store_id] });
+
+  // Trigger Langflow ingestion async (non-blocking)
+  triggerLangflowIngestion(catalogToText(storeCatalogs[store_id], store_id));
 });
 
 // DELETE /api/toko-pintar/catalog/:id
 app.delete('/api/toko-pintar/catalog/:id', (req, res) => {
   const { id } = req.params;
   const storeId = req.query.store_id || 'default';
-
-  if (!storeCatalogs[storeId]) {
-    storeCatalogs[storeId] = [...DEFAULT_CATALOG];
-  }
-
+  if (!storeCatalogs[storeId]) storeCatalogs[storeId] = [...DEFAULT_CATALOG];
   storeCatalogs[storeId] = storeCatalogs[storeId].filter(p => p.id !== id);
   saveCatalogs(storeCatalogs);
-
   res.json({ success: true, catalog: storeCatalogs[storeId] });
+
+  // Re-sync after delete
+  triggerLangflowIngestion(catalogToText(storeCatalogs[storeId], storeId));
 });
 
-// POST /api/toko-pintar/chat (RAG CS Engine — Hybrid: Langflow RAG → Gemini fallback)
+// POST /api/toko-pintar/sync — manual sync trigger from Settings UI
+app.post('/api/toko-pintar/sync', async (req, res) => {
+  const storeId = req.body.store_id || 'default';
+  const catalog = storeCatalogs[storeId] || [];
+  try {
+    await triggerLangflowIngestion(catalogToText(catalog, storeId));
+    res.json({ success: true, synced: catalog.length, store_id: storeId });
+  } catch (err) {
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+// POST /api/toko-pintar/chat (RAG CS Engine — Langflow RAG → Gemini fallback)
 app.post('/api/toko-pintar/chat', csChatLimiter, async (req, res) => {
   const { store_id = 'default', store_name = 'Toko UMKM Pintar', query, conversation = [] } = req.body;
   if (!query || !query.trim()) {
     return res.status(400).json({ error: 'Field "query" wajib diisi.' });
   }
 
-  // ── Jalur Gemini/Groq dengan katalog sebagai context ─────
-  const catalog = storeCatalogs[store_id] || storeCatalogs.default || [];
+  // ── Try Langflow RAG first ────────────────────────────────
+  if (langflowConfig.ragFlowId) {
+    try {
+      const answer = await langflowRun(langflowConfig.ragFlowId, query, { sessionId: store_id });
+      if (!answer) throw new Error('Langflow tidak mengembalikan respons.');
+      return res.json({ success: true, answer, store_name, engine: 'langflow-rag' });
+    } catch (err) {
+      console.warn('[toko-pintar/chat] Langflow failed, falling back to Gemini:', err.message);
+    }
+  }
 
+  // ── Fallback: Gemini/Groq with full catalog context ───────
+  const catalog = storeCatalogs[store_id] || storeCatalogs.default || [];
   const formattedCatalog = catalog.length > 0 ? catalog.map((p, i) => `
 [Produk ${i + 1}]
 - Nama Produk: ${p.name}
@@ -759,7 +933,6 @@ ATURAN CUSTOMER SERVICE SANGAT PENTING:
     } catch {
       resultText = await callGroq(chatHistory, csSystemPrompt);
     }
-
     return res.json({ success: true, answer: resultText, store_name, engine: 'gemini-fallback' });
   } catch (err) {
     console.error('[toko-pintar/chat]', err);

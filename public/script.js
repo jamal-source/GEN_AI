@@ -11,7 +11,7 @@
   const SIDEBAR_KEY   = 'mitraku_sidebar_open';
   const VIEW_KEY      = 'mitraku_active_view';
 
-  let activeConvId      = localStorage.getItem(ACTIVE_ID_KEY) || null;
+  let activeConvId      = safeGet(ACTIVE_ID_KEY) || null;
   let selectedProvider  = 'gemini';
   let isGenerating      = false;
   let pendingDeleteId   = null;
@@ -19,6 +19,24 @@
 
   /* Helper DOM Selector */
   const $ = id => document.getElementById(id);
+
+  /* Storage budget — jaga riwayat tetap kecil supaya localStorage
+     tidak pernah penuh (penyebab utama UI membeku / script mati). */
+  const STORAGE_BUDGET = 3.5 * 1024 * 1024; // target max ~3.5 MB (kuota Chrome 5 MB)
+  const MSG_LEN_LIMIT  = 24000;             // batas panjang satu pesan (chars)
+
+  /* Safe localStorage helpers — jangan biarkan satu kegagalan storage
+     (mis. QuotaExceededError) membunuh seluruh aplikasi. */
+  function safeGet(key) {
+    try { return localStorage.getItem(key); } catch (err) { console.warn('[safeGet] gagal baca localStorage:', key, err?.message || err); return null; }
+  }
+  function safeSet(key, val) {
+    try { localStorage.setItem(key, val); return true; }
+    catch (err) { console.warn('[safeSet] gagal tulis localStorage:', key, err?.message || err); return false; }
+  }
+  function safeRemove(key) {
+    try { localStorage.removeItem(key); return true; } catch (err) { console.warn('[safeRemove] gagal hapus localStorage:', key, err?.message || err); return false; }
+  }
 
   /* Safe Copy to Clipboard (Works on HTTP, HTTPS, WebViews, Localhost & Remote Deployments) */
   async function copyToClipboard(text, btnEl) {
@@ -84,44 +102,77 @@
   window.dismissOnboarding = function () {
     const card = $('onboarding-card');
     if (card) card.style.display = 'none';
-    localStorage.setItem('mitraku_onboarding_dismissed', 'true');
+    safeSet('mitraku_onboarding_dismissed', 'true');
   };
 
   function initOnboarding() {
     const card = $('onboarding-card');
     if (!card) return;
-    const isDismissed = localStorage.getItem('mitraku_onboarding_dismissed') === 'true';
+    const isDismissed = safeGet('mitraku_onboarding_dismissed') === 'true';
     if (isDismissed) {
       card.style.display = 'none';
     }
   }
 
+  /* ── MODAL ACCESSIBILITY HELPERS (focus trap + return focus) ── */
+  let lastFocusedEl = null;
+
+  function trapFocusKeydown(e, modal) {
+    if (e.key !== 'Tab') return;
+    const focusables = modal.querySelectorAll('button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])');
+    if (!focusables.length) return;
+    const first = focusables[0];
+    const last  = focusables[focusables.length - 1];
+    if (e.shiftKey && document.activeElement === first) { e.preventDefault(); last.focus(); }
+    else if (!e.shiftKey && document.activeElement === last) { e.preventDefault(); first.focus(); }
+  }
+
+  function openModal(id) {
+    const modal = $(id);
+    if (!modal) return;
+    lastFocusedEl = document.activeElement;
+    modal.style.display = 'flex';
+    try {
+      const focusables = modal.querySelectorAll('button, [href], input, select, textarea');
+      if (focusables.length) focusables[0].focus();
+    } catch (err) { /* abaikan */ }
+    if (!modal._trapped) {
+      modal._trapped = true;
+      modal.addEventListener('keydown', e => {
+        if (modal.style.display === 'flex') trapFocusKeydown(e, modal);
+      });
+    }
+  }
+
+  function closeModal(id) {
+    const modal = $(id);
+    if (modal) modal.style.display = 'none';
+    if (lastFocusedEl && lastFocusedEl.focus) {
+      try { lastFocusedEl.focus(); } catch (err) { /* elemen fokus tak lagi ada */ }
+      lastFocusedEl = null;
+    }
+  }
+
   window.openAboutModal = function () {
-    const modal = $('about-modal');
-    if (modal) modal.style.display = 'flex';
+    openModal('about-modal');
   };
 
   window.closeAboutModal = function () {
-    const modal = $('about-modal');
-    if (modal) modal.style.display = 'none';
+    closeModal('about-modal');
   };
 
   window.openClearHistoryModal = function () {
-    const modal = $('confirm-clear-modal');
-    if (modal) modal.style.display = 'flex';
+    window.closeAboutModal();
+    openModal('confirm-clear-modal');
   };
 
   window.closeClearHistoryModal = function () {
-    const modal = $('confirm-clear-modal');
-    if (modal) modal.style.display = 'none';
+    closeModal('confirm-clear-modal');
   };
-
-  const confirmClearBtn = $('confirm-clear-btn');
-  if (confirmClearBtn) confirmClearBtn.addEventListener('click', window.clearAllHistory);
 
   window.clearAllHistory = function () {
     [STORAGE_KEY, ACTIVE_ID_KEY, PRODUCT_KEY, SIDEBAR_KEY, VIEW_KEY].forEach(key => {
-      try { localStorage.removeItem(key); } catch (err) { console.warn('Gagal hapus localStorage:', key, err); }
+      safeRemove(key);
     });
 
     try { svc.conversations.length = 0; } catch (err) { console.warn('Gagal reset memori percakapan:', err); }
@@ -155,15 +206,16 @@
     showToast('🗑️ Semua riwayat & pengaturan produk berhasil dibersihkan.');
   };
 
+  const confirmClearBtn = $('confirm-clear-btn');
+  if (confirmClearBtn) confirmClearBtn.addEventListener('click', window.clearAllHistory);
+
   window.openProductModal = function () {
     initActiveProduct();
-    const modal = $('product-modal');
-    if (modal) modal.style.display = 'flex';
+    openModal('product-modal');
   };
 
   window.closeProductModal = function () {
-    const modal = $('product-modal');
-    if (modal) modal.style.display = 'none';
+    closeModal('product-modal');
   };
 
   window.saveActiveProduct = function () {
@@ -175,7 +227,7 @@
       variant:    inputVariant ? inputVariant.value.trim() : '',
       legalities: inputLegal   ? inputLegal.value.trim()   : ''
     };
-    localStorage.setItem(PRODUCT_KEY, JSON.stringify(p));
+    safeSet(PRODUCT_KEY, JSON.stringify(p));
     initActiveProduct();
     window.closeProductModal();
     if (activeConvId) {
@@ -188,8 +240,7 @@
 
   window.closeDeleteModal = function () {
     pendingDeleteId = null;
-    const modal = $('delete-modal');
-    if (modal) modal.style.display = 'none';
+    closeModal('delete-modal');
   };
 
   window.quickPrompt = function (text) {
@@ -220,9 +271,9 @@
   };
 
   window.handleNewChat = function () {
-    activeConvId = null;
-    localStorage.removeItem(ACTIVE_ID_KEY);
-    showEmpty();
+activeConvId = null;
+          safeRemove(ACTIVE_ID_KEY);
+          showEmpty();
     renderHistory();
     closeMobileDrawer();
     const input = $('user-input');
@@ -243,14 +294,14 @@
 
     _load() {
       try {
-        const raw = localStorage.getItem(STORAGE_KEY);
+        const raw = safeGet(STORAGE_KEY);
         const list = raw ? JSON.parse(raw) : [];
         if (!Array.isArray(list)) return [];
         const valid = list.filter(c => c && typeof c === 'object' && Array.isArray(c.messages) && c.messages.length > 0);
         if (valid.length !== list.length) {
-          localStorage.setItem(STORAGE_KEY, JSON.stringify(valid));
+          safeSet(STORAGE_KEY, JSON.stringify(valid));
         }
-        return valid;
+        return this._keepWithinBudget(valid);
       } catch {
         return [];
       }
@@ -258,16 +309,33 @@
 
     _save() {
       try {
-        const valid = this.conversations.filter(c => c && typeof c === 'object' && Array.isArray(c.messages) && c.messages.length > 0);
-        valid.forEach(c => {
-          if (c.messages.length > 100) {
-            c.messages = c.messages.slice(-100);
-          }
-        });
-        localStorage.setItem(STORAGE_KEY, JSON.stringify(valid));
+        let valid = this.conversations
+          .filter(c => c && typeof c === 'object' && Array.isArray(c.messages) && c.messages.length > 0)
+          .map(c => ({
+            ...c,
+            messages: c.messages.slice(-100).map(m => ({
+              ...m,
+              text: (typeof m.text === 'string' && m.text.length > MSG_LEN_LIMIT) ? m.text.slice(0, MSG_LEN_LIMIT) : m.text
+            }))
+          }));
+        this.conversations = this._keepWithinBudget(valid);
+        safeSet(STORAGE_KEY, JSON.stringify(this.conversations));
       } catch (err) {
         console.warn('Gagal menyimpan riwayat ke localStorage:', err);
       }
+    }
+
+    /* Jaga total ukuran riwayat di bawah budget. Buang percakapan
+       paling lama dulu supaya localStorage tidak pernah penuh. */
+    _keepWithinBudget(list) {
+      let arr = list.slice();
+      while (arr.length > 1) {
+        let size = 0;
+        try { size = JSON.stringify(arr).length * 2; } catch { size = STORAGE_BUDGET + 1; }
+        if (size <= STORAGE_BUDGET) break;
+        arr.pop(); // percakapan paling lama ada di akhir daftar
+      }
+      return arr;
     }
 
     getAll() {
@@ -384,26 +452,37 @@
   const sendBtn             = $('send-btn');
   const confirmDeleteBtn    = $('confirm-delete-btn');
 
-  // Initialize UI Settings
-  initTheme();
-  initSidebar();
-  initActiveProduct();
-  initOnboarding();
+  // Initialize UI Settings — satu kegagalan di sini JANGAN mematikan seluruh wiring.
+  try {
+    initTheme();
+    initSidebar();
+    initActiveProduct();
+    initOnboarding();
+  } catch (err) {
+    console.error('Init UI gagal sebagian (dilewati):', err);
+  }
   checkProviderAvailability();
 
   // Load Initial Conversation if valid
-  const initialConv = activeConvId ? svc.get(activeConvId) : null;
-  if (initialConv && initialConv.messages && initialConv.messages.length > 0) {
-    loadConversation(activeConvId);
-  } else {
+  try {
+    const initialConv = activeConvId ? svc.get(activeConvId) : null;
+    if (initialConv && initialConv.messages && initialConv.messages.length > 0) {
+      loadConversation(activeConvId);
+    } else {
+      activeConvId = null;
+      safeRemove(ACTIVE_ID_KEY);
+      showEmpty();
+    }
+    renderHistory();
+  } catch (err) {
+    console.error('Gagal muat percakapan awal (dilewati):', err);
     activeConvId = null;
-    localStorage.removeItem(ACTIVE_ID_KEY);
+    safeRemove(ACTIVE_ID_KEY);
     showEmpty();
   }
-  renderHistory();
 
   // BUG #12 FIX: Restore last active view from localStorage
-  const savedView = localStorage.getItem(VIEW_KEY);
+  const savedView = safeGet(VIEW_KEY);
   if (savedView && savedView !== 'chat') {
     // Defer to ensure DOM is ready for switchView
     setTimeout(() => { if (typeof window.switchView === 'function') window.switchView(savedView); }, 0);
@@ -438,7 +517,7 @@
       sidebar.offsetHeight; // force reflow
       sidebar.style.transition = '';
     }
-    localStorage.setItem(SIDEBAR_KEY, String(open));
+    safeSet(SIDEBAR_KEY, String(open));
   }
 
   window.toggleSidebar = function () {
@@ -480,7 +559,7 @@
 
   /* ── THEME SWITCHER ─────────────────────────────────────────── */
   function initTheme() {
-    const saved = localStorage.getItem(THEME_KEY) || 'light';
+    const saved = safeGet(THEME_KEY) || 'light';
     document.documentElement.setAttribute('data-theme', saved);
     if (themeIcon) themeIcon.textContent = saved === 'dark' ? '☀️' : '🌙';
   }
@@ -490,7 +569,7 @@
       const cur  = document.documentElement.getAttribute('data-theme') || 'light';
       const next = cur === 'dark' ? 'light' : 'dark';
       document.documentElement.setAttribute('data-theme', next);
-      localStorage.setItem(THEME_KEY, next);
+      safeSet(THEME_KEY, next);
       if (themeIcon) themeIcon.textContent = next === 'dark' ? '☀️' : '🌙';
     });
   }
@@ -498,7 +577,7 @@
   /* ── ACTIVE PRODUCT CONTEXT ─────────────────────────────────── */
   function getActiveProductContext() {
     try {
-      const raw = localStorage.getItem(PRODUCT_KEY);
+      const raw = safeGet(PRODUCT_KEY);
       if (!raw) return { brand: '', variant: '', legalities: '' };
       const parsed = JSON.parse(raw);
       return (parsed && typeof parsed === 'object') ? {
@@ -572,8 +651,7 @@
 
   async function checkProviderAvailability() {
     try {
-      const res = await apiFetch('/api/providers');
-      const data = await res.json();
+      const { data } = await apiFetch('/api/providers');
       if (data && typeof data === 'object') {
         const geminiDesc = document.querySelector('.model-menu-item[data-value="gemini"] .item-desc');
         const groqDesc   = document.querySelector('.model-menu-item[data-value="groq"] .item-desc');
@@ -632,8 +710,7 @@
   /* ── BUG #10 FIX: Custom Catalog Delete Modal ───────────────── */
   window.closeCatalogDeleteModal = function () {
     pendingCatalogDeleteId = null;
-    const modal = $('catalog-delete-modal');
-    if (modal) modal.style.display = 'none';
+    closeModal('catalog-delete-modal');
   };
 
   const catalogDeleteConfirmBtn = $('catalog-delete-confirm-btn');
@@ -643,9 +720,8 @@
       const id = pendingCatalogDeleteId;
       window.closeCatalogDeleteModal();
       try {
-        const res = await apiFetch(`/api/toko-pintar/catalog/${id}`, { method: 'DELETE' });
-        const data = await res.json();
-        if (res.ok && data.success) {
+        const { ok, data } = await apiFetch(`/api/toko-pintar/catalog/${id}`, { method: 'DELETE' });
+        if (ok && data.success) {
           showToast('🗑️ Produk dihapus dari katalog.');
           loadStoreCatalog();
         } else {
@@ -777,8 +853,7 @@
 
   function triggerDelete(id) {
     pendingDeleteId = id;
-    const deleteModal = $('delete-modal');
-    if (deleteModal) deleteModal.style.display = 'flex';
+    openModal('delete-modal');
   }
 
   if (confirmDeleteBtn) {
@@ -786,9 +861,9 @@
       if (pendingDeleteId) {
         svc.delete(pendingDeleteId);
         if (activeConvId === pendingDeleteId) {
-          activeConvId = null;
-          localStorage.removeItem(ACTIVE_ID_KEY);
-          showEmpty();
+activeConvId = null;
+    safeRemove(ACTIVE_ID_KEY);
+    showEmpty();
         }
         renderHistory();
       }
@@ -802,7 +877,7 @@
     if (!conv) return;
 
     activeConvId = id;
-    localStorage.setItem(ACTIVE_ID_KEY, id);
+    safeSet(ACTIVE_ID_KEY, id);
 
     hideEmpty();
     if (chatBox) {
@@ -943,7 +1018,7 @@
     if (!activeConvId || !svc.get(activeConvId)) {
       const conv = svc.create();
       activeConvId = conv.id;
-      localStorage.setItem(ACTIVE_ID_KEY, activeConvId);
+      safeSet(ACTIVE_ID_KEY, activeConvId);
       isFirst = true;
     }
 
@@ -966,7 +1041,7 @@
     scrollToBottom();
 
     try {
-      const res = await apiFetch('/api/chat', {
+      const { ok, data } = await apiFetch('/api/chat', {
         method:  'POST',
         headers: { 'Content-Type': 'application/json' },
         body:    JSON.stringify({
@@ -975,12 +1050,11 @@
           product_context: getActiveProductContext()
         })
       });
-      const data = await res.json();
 
-      if (res.ok && data.result) {
+      if (ok && data.result) {
         svc.addMessage(activeConvId, 'model', data.result);
         bubble.innerHTML = renderMd(data.result);
-        bubble.querySelectorAll('pre code').forEach(b => window.hljs && window.hljs.highlightElement(b));
+        safeHighlight(bubble);
 
         // Auto-switch provider notice in UI if server used fallback
         if (data.provider && data.provider.includes('fallback')) {
@@ -1002,6 +1076,9 @@
       botRow.classList.add('error-row');
       if (err.name === 'AbortError') {
         bubble.textContent = '⏳ Waktu permintaan habis (Timeout 25 detik). Server AI belum memberikan respons, silakan coba lagi.';
+      } else if (isNetworkErr(err)) {
+        bubble.textContent = 'Tidak dapat terhubung ke server (kemungkinan sedang restart). UI masih berfungsi — silakan coba kirim lagi.';
+        showToast('⚠️ Koneksi ke server terputus.');
       } else {
         bubble.textContent = formatError(err?.message || 'Tidak dapat terhubung ke server.');
       }
@@ -1045,12 +1122,11 @@
 
   async function autoTitle(firstMsg) {
     try {
-      const res = await apiFetch('/api/title', {
+      const { data } = await apiFetch('/api/title', {
         method:  'POST',
         headers: { 'Content-Type': 'application/json' },
         body:    JSON.stringify({ text: firstMsg })
       });
-      const data = await res.json();
       if (data.title && activeConvId) {
         svc.rename(activeConvId, data.title);
         renderHistory();
@@ -1062,7 +1138,7 @@
 
   /* ── VIEW SWITCHER (5 MODUL) ───────── */
   window.switchView = function (viewName) {
-    const views = ['chat', 'copywriting', 'brandkit', 'tokopintar', 'marketresearch'];
+    const views = ['chat', 'copywriting', 'brandkit', 'tokopintar', 'marketresearch', 'settings'];
     
     views.forEach(v => {
       let vEl = $(v + '-view');
@@ -1109,13 +1185,17 @@
       prefillTpProductForm();
       renderTpQuickPrompts();
       initTokoPintarLinks();
+    } else if (viewName === 'settings') {
+      if (typeof initSettingsPanel === 'function') {
+        initSettingsPanel();
+      }
     }
 
     if (typeof closeMobileDrawer === 'function') {
       closeMobileDrawer();
     }
     // BUG #12 FIX: Persist active view to localStorage
-    localStorage.setItem(VIEW_KEY, viewName);
+    safeSet(VIEW_KEY, viewName);
   };
 
   /* ── TOKO PINTAR: IDENTITAS TOKO, SHARE LINK & EMBED CODE ──── */
@@ -1123,11 +1203,11 @@
   const TP_STORE_NAME_KEY = 'mitraku_store_name';
 
   function getTpStoreId() {
-    return localStorage.getItem(TP_STORE_ID_KEY) || 'default';
+    return safeGet(TP_STORE_ID_KEY) || 'default';
   }
 
   function getTpStoreName() {
-    return localStorage.getItem(TP_STORE_NAME_KEY) || 'Toko UMKM Pintar';
+    return safeGet(TP_STORE_NAME_KEY) || 'Toko UMKM Pintar';
   }
 
   function initTpStoreIdentity() {
@@ -1145,7 +1225,7 @@
   window.onTpStoreNameChange = function () {
     const input = $('tp-store-name-input');
     if (input) {
-      localStorage.setItem(TP_STORE_NAME_KEY, input.value.trim() || 'Toko UMKM Pintar');
+      safeSet(TP_STORE_NAME_KEY, input.value.trim() || 'Toko UMKM Pintar');
     }
     updateTpStoreIdentity();
     initTokoPintarLinks();
@@ -1268,7 +1348,7 @@
     const p = list.find(function (x) { return x.id === id; });
     if (!p) return;
     const obj = { brand: '', variant: p.name, legalities: '' };
-    localStorage.setItem(PRODUCT_KEY, JSON.stringify(obj));
+    safeSet(PRODUCT_KEY, JSON.stringify(obj));
     if (typeof initActiveProduct === 'function') initActiveProduct();
     if (activeConvId) {
       const conv = svc.get(activeConvId);
@@ -1335,7 +1415,7 @@
     setRegenBusy('cw-regen-btn', true);
 
     try {
-      const res = await apiFetch('/api/copywriting', {
+      const { ok, data } = await apiFetch('/api/copywriting', {
         method:  'POST',
         headers: { 'Content-Type': 'application/json' },
         body:    JSON.stringify({
@@ -1346,9 +1426,7 @@
         })
       });
 
-      const data = await res.json();
-
-      if (res.ok && data.success && data.result) {
+      if (ok && data.success && data.result) {
         renderCopywritingResults(platform, data.result);
         if (loadingState)   loadingState.style.display   = 'none';
         if (contentWrapper) contentWrapper.style.display = 'block';
@@ -1516,7 +1594,7 @@
 
     const history = conv.messages.map(m => ({ role: m.role, text: m.text }));
 try {
-      const res = await apiFetch('/api/chat', {
+      const { ok, data } = await apiFetch('/api/chat', {
         method:  'POST',
         headers: { 'Content-Type': 'application/json' },
         body:    JSON.stringify({
@@ -1526,12 +1604,10 @@ try {
         })
       });
 
-      const data = await res.json();
-
-      if (res.ok && data.result) {
+      if (ok && data.result) {
         svc.addMessage(activeConvId, 'model', data.result);
         bubble.innerHTML = renderMd(data.result);
-        bubble.querySelectorAll('pre code').forEach(b => window.hljs && window.hljs.highlightElement(b));
+        safeHighlight(bubble);
         showToast('↻ Respons berhasil diperbarui!');
       } else {
         botRow.classList.add('error-row');
@@ -1539,7 +1615,11 @@ try {
       }
     } catch (err) {
       botRow.classList.add('error-row');
-      bubble.textContent = formatError(err?.message || 'Tidak dapat terhubung ke server.');
+      if (isNetworkErr(err)) {
+        bubble.textContent = 'Tidak dapat terhubung ke server (kemungkinan sedang restart). Coba lagi.';
+      } else {
+        bubble.textContent = formatError(err?.message || 'Tidak dapat terhubung ke server.');
+      }
     } finally {
       setLoading(false);
       renderHistory();
@@ -1575,7 +1655,7 @@ try {
       bubble.textContent = text;
     } else {
       bubble.innerHTML = renderMd(text);
-      bubble.querySelectorAll('pre code').forEach(b => window.hljs && window.hljs.highlightElement(b));
+      safeHighlight(bubble);
     }
 
     if (!isUser) {
@@ -1691,19 +1771,40 @@ try {
   }
 
   /* ── UTILITIES ──────────────────────────────────────────────── */
-  async function apiFetch(url, options = {}, timeout = 25000) {
+  /* Fetch dengan abort timeout yang tetap hidup SAMPAI body selesai dibaca,
+     supaya `res.json()` yang menggantung (server restart) tidak mengunci UI. */
+  async function apiFetch(url, options = {}, timeout = 25000, bodyParser = res => res.json()) {
     const controller = new AbortController();
     const timeoutId  = setTimeout(() => controller.abort(), timeout);
     try {
-      return await fetch(url, Object.assign({}, options, { signal: controller.signal }));
+      const res  = await fetch(url, Object.assign({}, options, { signal: controller.signal }));
+      const data = await bodyParser(res);
+      return { ok: res.ok, status: res.status, data };
     } catch (err) {
       if (err && err.name === 'AbortError') {
-        throw new DOMException('Waktu permintaan habis (25 detik). Silakan coba lagi.', 'AbortError');
+        throw new DOMException('Waktu permintaan habis (' + Math.round(timeout / 1000) + ' detik). Silakan coba lagi.', 'AbortError');
       }
       throw err;
     } finally {
       clearTimeout(timeoutId);
     }
+  }
+
+  /* Deteksi error koneksi (beda dengan timeout): server restart / offline. */
+  function isNetworkErr(err) {
+    if (/AbortError|TimeoutError/.test(err?.name || '')) return false;
+    if (navigator.onLine === false) return true;
+    return err instanceof TypeError
+      || /failed to fetch|networkerror|network error|load failed|ECONNREFUSED|connection/i.test(err?.message || '');
+  }
+
+  /* Highlight kode aman: lewati blok raksasa supaya hljs tidak mengunci UI. */
+  function safeHighlight(container) {
+    if (!window.hljs || !container) return;
+    container.querySelectorAll('pre code').forEach(el => {
+      if (((el.textContent || '').length) > 20000) return;
+      try { window.hljs.highlightElement(el); } catch (err) { /* abaikan */ }
+    });
   }
 
   function escHtml(s) {
@@ -1770,7 +1871,7 @@ try {
     setRegenBusy('bk-regen-btn', true);
 
     try {
-      const res = await apiFetch('/api/brand-kit', {
+      const { ok, data } = await apiFetch('/api/brand-kit', {
         method:  'POST',
         headers: { 'Content-Type': 'application/json' },
         body:    JSON.stringify({
@@ -1780,9 +1881,7 @@ try {
         })
       });
 
-      const data = await res.json();
-
-      if (res.ok && data.success && data.result) {
+      if (ok && data.success && data.result) {
         currentBrandKitData = data.result;
         renderBrandKitResults(data.result);
         if (loadingState)   loadingState.style.display   = 'none';
@@ -1930,15 +2029,14 @@ try {
     }
 
     try {
-      const res = await apiFetch('/api/brand-kit/render-png', {
+      const { ok, data: body } = await apiFetch('/api/brand-kit/render-png', {
         method:  'POST',
         headers: { 'Content-Type': 'application/json' },
         body:    JSON.stringify({ brand_kit: currentBrandKitData })
-      });
+      }, 60000, r => r.ok ? r.blob() : r.json().catch(() => null));
 
-      if (res.ok) {
-        const blob = await res.blob();
-        const url = window.URL.createObjectURL(blob);
+      if (ok) {
+        const url = window.URL.createObjectURL(body);
         const a = document.createElement('a');
         a.href = url;
         a.download = `BrandKit_${(currentBrandKitData.brand_name || 'UMKM').replace(/\s+/g, '_')}.png`;
@@ -1948,8 +2046,7 @@ try {
         window.URL.revokeObjectURL(url);
         showToast('🎉 Visual Brand Kit PNG berhasil di-download!');
       } else {
-        const errData = await res.json().catch(() => null);
-        showToast('❌ ' + formatError(errData || 'Gagal merender PNG.'));
+        showToast('❌ ' + formatError(body?.error || 'Gagal merender PNG.'));
       }
     } catch (err) {
       showToast('❌ Gagal download PNG: ' + (err?.message || err));
@@ -2020,10 +2117,9 @@ try {
     `;
 
     try {
-      const res = await apiFetch('/api/toko-pintar/catalog');
-      const data = await res.json();
+      const { ok, data } = await apiFetch('/api/toko-pintar/catalog');
 
-      if (res.ok && data.success && Array.isArray(data.catalog)) {
+      if (ok && data.success && Array.isArray(data.catalog)) {
         if (countEl) countEl.textContent = data.catalog.length;
         window.__tpCatalog = data.catalog;
         renderCatalogList(data.catalog);
@@ -2098,14 +2194,13 @@ try {
     if (addBtn) addBtn.disabled = true;
 
     try {
-      const res = await apiFetch('/api/toko-pintar/catalog', {
+      const { ok, data } = await apiFetch('/api/toko-pintar/catalog', {
         method:  'POST',
         headers: { 'Content-Type': 'application/json' },
         body:    JSON.stringify({ name, category, price, stock, description: desc, shipping_info: shipping })
       });
-      const data = await res.json();
 
-      if (res.ok && data.success) {
+      if (ok && data.success) {
         showToast('🎉 Produk berhasil ditambahkan ke katalog!');
         $('tp-product-form')?.reset();
         loadStoreCatalog();
@@ -2122,8 +2217,7 @@ try {
   // BUG #10 FIX: Use custom modal instead of native browser confirm()
   window.deleteCatalogProduct = function (id) {
     pendingCatalogDeleteId = id;
-    const modal = $('catalog-delete-modal');
-    if (modal) modal.style.display = 'flex';
+    openModal('catalog-delete-modal');
   };
 
   window.sendTpCsQuery = function (queryText) {
@@ -2187,16 +2281,15 @@ try {
     if (sendBtn) sendBtn.disabled = true;
 
     try {
-      const res = await apiFetch('/api/toko-pintar/chat', {
+      const { ok, data } = await apiFetch('/api/toko-pintar/chat', {
         method:  'POST',
         headers: { 'Content-Type': 'application/json' },
         body:    JSON.stringify({ query, conversation: tpCsConversationHistory, store_id: getTpStoreId(), store_name: getTpStoreName() })
       });
-      const data = await res.json();
 
       const bubble = botRow.querySelector('.bubble');
 
-      if (res.ok && data.success && data.answer) {
+      if (ok && data.success && data.answer) {
         bubble.innerHTML = renderMd(data.answer);
         tpCsConversationHistory.push({ role: 'user', text: query });
         tpCsConversationHistory.push({ role: 'model', text: data.answer });
@@ -2261,14 +2354,13 @@ try {
     }, 1800);
 
     try {
-      const res = await apiFetch('/api/market-research', {
+      const { ok, data } = await apiFetch('/api/market-research', {
         method:  'POST',
         headers: { 'Content-Type': 'application/json' },
         body:    JSON.stringify({ product_name: name, category: cat, current_price: price })
       });
-      const data = await res.json();
 
-      if (res.ok && data.success && data.result) {
+      if (ok && data.success && data.result) {
         renderMarketResearchOutput(data.result);
         if (contentState) contentState.style.display = 'block';
         showToast('🎉 Laporan Riset Pasar AI berhasil dibuat!');
@@ -2401,7 +2493,127 @@ try {
     loadStoreCatalog();
   }
   initPricePreviewHelpers();
+  initSettingsPanel();
 
 })();
+
+/* ── SETTINGS / INTEGRASI PANEL ──────────────────────────────────── */
+function initSettingsPanel() {
+  // Load saved config from backend and populate form
+  fetch('/api/config').then(r => r.json()).then(cfg => {
+    const set = (id, val) => { const el = document.getElementById(id); if (el) el.value = val || ''; };
+    set('cfg-langflow-url',      cfg.langflowUrl);
+    set('cfg-ingestion-flow-id', cfg.ingestionFlowId);
+    set('cfg-rag-flow-id',       cfg.ragFlowId);
+    set('cfg-astra-token',       cfg.astraToken); // masked value from backend
+    set('cfg-astra-endpoint',    cfg.astraEndpoint);
+    set('cfg-astra-collection',  cfg.astraCollection);
+    updateLangflowStatusBadge(cfg.langflowEnabled ? 'ok' : 'unknown');
+  }).catch((err) => {
+    console.warn('[initSettingsPanel] fetch /api/config failed:', err);
+  });
+}
+
+window.saveIntegrationConfig = async function () {
+  const get = id => document.getElementById(id)?.value?.trim() || '';
+  const payload = {
+    langflowUrl:      get('cfg-langflow-url'),
+    ingestionFlowId:  get('cfg-ingestion-flow-id'),
+    ragFlowId:        get('cfg-rag-flow-id'),
+    astraToken:       get('cfg-astra-token'),
+    astraEndpoint:    get('cfg-astra-endpoint'),
+    astraCollection:  get('cfg-astra-collection'),
+  };
+  try {
+    const res = await fetch('/api/config', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
+    const data = await res.json();
+    if (data.success) {
+      showToast('✅ Konfigurasi Langflow berhasil disimpan!');
+      addSettingsLog('ok', 'Config disimpan. Langflow ' + (data.langflowEnabled ? 'AKTIF ✓' : 'belum lengkap'));
+      updateLangflowStatusBadge(data.langflowEnabled ? 'ok' : 'unknown');
+    }
+  } catch (err) {
+    showToast('❌ Gagal menyimpan config: ' + err.message);
+  }
+};
+
+window.testLangflowConnection = async function () {
+  const lfBadge = document.getElementById('lf-status-badge');
+  if (lfBadge) { lfBadge.className = 'settings-status-badge settings-status-unknown'; lfBadge.textContent = '● Menguji...'; }
+  addSettingsLog('info', 'Menguji koneksi ke Langflow...');
+  try {
+    const res = await fetch('/api/test-langflow', { method: 'POST' });
+    const data = await res.json();
+    if (data.ok) {
+      updateLangflowStatusBadge('ok');
+      addSettingsLog('ok', 'Langflow terhubung ✓ — ' + data.message);
+      showToast('✅ Langflow terhubung!');
+    } else {
+      updateLangflowStatusBadge('error');
+      addSettingsLog('err', 'Gagal: ' + data.error);
+      showToast('❌ ' + data.error);
+    }
+  } catch (err) {
+    updateLangflowStatusBadge('error');
+    addSettingsLog('err', 'Error: ' + err.message);
+  }
+};
+
+window.syncCatalogToLangflow = async function () {
+  addSettingsLog('info', 'Memulai sync katalog ke AstraDB via Langflow...');
+  try {
+    const res = await fetch('/api/toko-pintar/sync', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ store_id: 'default' }) });
+    const data = await res.json();
+    if (data.success) {
+      addSettingsLog('ok', `Sync selesai — ${data.synced} produk dikirim ke Langflow ✓`);
+      showToast(`✅ ${data.synced} produk berhasil di-sync ke AstraDB!`);
+    } else {
+      addSettingsLog('err', 'Sync gagal: ' + data.error);
+    }
+  } catch (err) {
+    addSettingsLog('err', 'Sync error: ' + err.message);
+  }
+};
+
+
+window.toggleCfgVisibility = function (inputId, btn) {
+  const el = document.getElementById(inputId);
+  if (!el) return;
+  if (el.type === 'password') { el.type = 'text'; btn.textContent = 'Sembunyikan'; }
+  else { el.type = 'password'; btn.textContent = 'Tampilkan'; }
+};
+
+window.clearSettingsLog = function () {
+  const body = document.getElementById('settings-log-body');
+  if (body) body.innerHTML = '';
+  const log = document.getElementById('settings-log');
+  if (log) log.style.display = 'none';
+};
+
+function updateLangflowStatusBadge(status) {
+  const badge = document.getElementById('lf-status-badge');
+  if (!badge) return;
+  const map = {
+    ok:      ['settings-status-ok',      '● Terhubung'],
+    error:   ['settings-status-error',   '● Error'],
+    unknown: ['settings-status-unknown', '● Belum dicek'],
+  };
+  const [cls, label] = map[status] || map.unknown;
+  badge.className = 'settings-status-badge ' + cls;
+  badge.textContent = label;
+}
+
+function addSettingsLog(type, msg) {
+  const log = document.getElementById('settings-log');
+  const body = document.getElementById('settings-log-body');
+  if (!log || !body) return;
+  log.style.display = 'block';
+  const prefix = { ok: '✓', err: '✗', info: '→' }[type] || '·';
+  const line = document.createElement('div');
+  line.className = `log-line log-${type}`;
+  line.textContent = `[${new Date().toLocaleTimeString('id-ID')}] ${prefix} ${msg}`;
+  body.appendChild(line);
+  body.scrollTop = body.scrollHeight;
+}
 
 

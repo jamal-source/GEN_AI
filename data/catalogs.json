@@ -1,13 +1,13 @@
 {
   "default": [
     {
-      "id": "prod_1",
-      "name": "Sambal Bawang Bu Ani (150g)",
-      "category": "Kuliner / Sambal Kemasan",
-      "price": 28000,
-      "stock": 45,
-      "description": "Sambal bawang homemade dengan 100% cabai rawit merah asli & bawang merah pilihan. Gurih, pedas pas, tanpa pengawet. Tahan 3 bulan di suhu ruang.",
-      "shipping_info": "Dikirim dari Kebumen, packing bubble wrap tebal. Bebas ongkir Shopee/Tokopedia."
+      "id": "prod_1789069383985",
+      "name": "kopi hitam",
+      "category": "sacetan",
+      "price": 25000,
+      "stock": 50,
+      "description": "pokoke enak",
+      "shipping_info": "jnt"
     },
     {
       "id": "prod_2",

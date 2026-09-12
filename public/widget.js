@@ -58,12 +58,15 @@
     return html;
   }
 
-  /* fetch dengan timeout 25s (meniru apiFetch utama) */
-  async function widgetFetch(url, options) {
+  /* fetch dengan timeout yang tetap hidup sampai body selesai dibaca,
+     supaya res.json() yang menggantung (server restart) tidak mengunci widget. */
+  async function widgetFetchJSON(url, options) {
     var controller = new AbortController();
     var timer = setTimeout(function () { controller.abort(); }, 25000);
     try {
-      return await fetch(url, Object.assign({}, options, { signal: controller.signal }));
+      var res  = await fetch(url, Object.assign({}, options, { signal: controller.signal }));
+      var data = await res.json();
+      return { ok: res.ok, data: data };
     } catch (err) {
       if (err && err.name === 'AbortError') {
         throw new DOMException('Waktu permintaan habis (25 detik). Silakan coba lagi.', 'AbortError');
@@ -163,10 +166,9 @@
 
   async function loadCatalog() {
     try {
-      var res = await widgetFetch('/api/toko-pintar/catalog?store_id=' + encodeURIComponent(STORE_ID));
-      var data = await res.json();
-      if (data && Array.isArray(data.catalog)) {
-        window.__wCatalog = data.catalog;
+      var res = await widgetFetchJSON('/api/toko-pintar/catalog?store_id=' + encodeURIComponent(STORE_ID));
+      if (res.data && Array.isArray(res.data.catalog)) {
+        window.__wCatalog = res.data.catalog;
       }
     } catch (e) {
       window.__wCatalog = [];
@@ -174,10 +176,17 @@
     buildQuickPrompts();
   }
 
+  var wBusy   = false;
+  var wSession = 0;
+
   async function send() {
+    if (wBusy) return;
     var input = inputEl ? inputEl.value.replace(/\s+/g, ' ').trim() : '';
     if (!input) return;
+    var session = wSession; // reset() selama in-flight akan menandai percakapan lama
+    wBusy = true;
     if (sendBtn) sendBtn.disabled = true;
+    if (quickEl) quickEl.style.pointerEvents = 'none';
     if (inputEl) inputEl.value = '';
 
     addRow('user', 'Anda', fmtTime(new Date()), escHtml(input));
@@ -185,7 +194,7 @@
       '<div class="w-thinking">CS sedang memeriksa katalog toko<span class="tdot"></span><span class="tdot"></span><span class="tdot"></span></div>');
 
     try {
-      var res = await widgetFetch('/api/toko-pintar/chat', {
+      var res = await widgetFetchJSON('/api/toko-pintar/chat', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -195,23 +204,26 @@
           store_name: STORE_NAME
         })
       });
-      var data = await res.json();
       var bubble = botRow.querySelector('.m-bubble');
-      if (res.ok && data && data.success && data.answer) {
-        bubble.innerHTML = renderMdMin(data.answer);
-        conv.push({ role: 'user', text: input });
-        conv.push({ role: 'model', text: data.answer });
-        saveConv();
+      if (res.ok && res.data && res.data.success && res.data.answer) {
+        bubble.innerHTML = renderMdMin(res.data.answer);
+        if (session === wSession) {
+          conv.push({ role: 'user', text: input });
+          conv.push({ role: 'model', text: res.data.answer });
+          saveConv();
+        }
       } else {
         botRow.classList.add('error');
-        bubble.textContent = data && data.error ? data.error : 'Ups, ada kendala di server. Silakan coba lagi.';
+        bubble.textContent = res.data && res.data.error ? res.data.error : 'Ups, ada kendala di server. Silakan coba lagi.';
       }
     } catch (err) {
       var bubble2 = botRow.querySelector('.m-bubble');
       botRow.classList.add('error');
       bubble2.textContent = '❌ ' + (err && err.message ? err.message : 'Tidak dapat terhubung ke server CS.');
     } finally {
+      wBusy = false;
       if (sendBtn) sendBtn.disabled = false;
+      if (quickEl) quickEl.style.pointerEvents = '';
       if (chatBox) chatBox.scrollTop = chatBox.scrollHeight;
       if (inputEl) inputEl.focus();
     }
@@ -243,6 +255,7 @@
   if (resetBtn) {
     resetBtn.addEventListener('click', function () {
       conv = [];
+      wSession++; // batalkan setiap send() yang masih in-flight
       try { sessionStorage.removeItem(CONV_KEY); } catch (e) {}
       if (chatBox) chatBox.innerHTML = '';
       showGreeting();

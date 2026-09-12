@@ -13,7 +13,7 @@
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/atom-one-dark.min.css">
   <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js" defer></script>
   
-  <link rel="stylesheet" href="style.css?v=3.0"/>
+  <link rel="stylesheet" href="style.css?v=4.1"/>
   <style>
     /* BUG #11 FIX: Print only Brand Kit output section */
     @media print {
@@ -114,11 +114,11 @@
           </button>
           
           <!-- Product Context Selector -->
-          <div class="product-selector-pill" onclick="openProductModal()" title="Klik untuk ganti produk aktif">
+          <button type="button" class="product-selector-pill" onclick="openProductModal()" title="Klik untuk ganti produk aktif" aria-label="Ganti produk aktif">
             <span class="pill-icon">📦</span>
             <span class="pill-label" id="top-product-name">Produk: Umum</span>
             <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 12 15 18 9"></polyline></svg>
-          </div>
+          </button>
         </div>
 
         <!-- Top Center Navigation Tabs -->
@@ -143,6 +143,10 @@
             <button type="button" class="view-tab-btn" id="tab-marketresearch" onclick="switchView('marketresearch')">
               <span class="tab-icon">📊</span>
               <span class="tab-label">Riset Pasar</span>
+            </button>
+            <button type="button" class="view-tab-btn" id="tab-settings" onclick="switchView('settings')">
+              <span class="tab-icon">⚙️</span>
+              <span class="tab-label">Integrasi</span>
             </button>
           </nav>
         </div>
@@ -292,9 +296,9 @@
                   <span>📦</span>
                 </button>
                 
-                <div class="composer-active-product" onclick="openProductModal()">
+                <button type="button" class="composer-active-product" onclick="openProductModal()" aria-label="Ganti produk aktif">
                   <span id="composer-product-label">📦 produk: Umum</span>
-                </div>
+                </button>
               </div>
 
               <div class="toolbar-right">
@@ -1020,17 +1024,164 @@
 
         </div>
       </div>
-    </div>
+
+      <!-- VIEW 6: INTEGRASI SETTINGS VIEW -->
+      <div id="settings-view" class="view-container" style="display:none;">
+        <div class="copywriting-wrapper">
+
+          <!-- Banner -->
+          <div class="cw-header-banner cw-banner-risetpasar">
+            <div class="banner-deco" aria-hidden="true">
+              <div class="deco-blob deco-blob-1"></div>
+              <div class="deco-blob deco-blob-2"></div>
+            </div>
+            <div class="banner-content">
+              <div class="banner-top-row">
+                <div class="cw-header-badge" style="background:rgba(99,102,241,0.15);border-color:rgba(99,102,241,0.3);color:#6366f1;">⚙️ INTEGRASI AI</div>
+                <span class="banner-ai-pill">🔗 Langflow + AstraDB</span>
+              </div>
+              <h1 class="cw-header-title">Konfigurasi Integrasi Langflow</h1>
+              <p class="cw-header-sub">Hubungkan Toko Pintar AI dengan IBM Langflow dan AstraDB untuk mengaktifkan RAG vector search yang sesungguhnya pada chatbot CS toko Anda.</p>
+              <div class="banner-highlights">
+                <span class="banner-hl-item"><span class="hl-dot hl-indigo"></span>Langflow RAG Engine</span>
+                <span class="banner-hl-item"><span class="hl-dot hl-blue"></span>AstraDB Vector Store</span>
+                <span class="banner-hl-item"><span class="hl-dot hl-green"></span>Auto-fallback ke Gemini</span>
+                <span class="banner-hl-item"><span class="hl-dot hl-purple"></span>Per-toko Isolasi Data</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- MAIN LAYOUT GRID (Matching Toko Pintar & Riset Pasar) -->
+          <div class="cw-main-grid">
+            <!-- Left Form Panel -->
+            <div class="cw-form-panel">
+              <div class="settings-grid">
+
+            <!-- Card 1: Langflow Config -->
+            <div class="settings-card mfc-card-indigo">
+              <div class="mfc-top-bar"></div>
+              <div class="settings-card-header">
+                <div class="settings-card-icon">🔗</div>
+                <div>
+                  <div class="settings-card-title">Langflow Server</div>
+                  <div class="settings-card-desc">URL server Langflow dan Flow ID untuk pipeline RAG</div>
+                </div>
+                <div id="lf-status-badge" class="settings-status-badge settings-status-unknown">● Belum dicek</div>
+              </div>
+
+              <div class="cw-form-group">
+                <label class="cw-label"><span>URL Langflow</span></label>
+                <input type="url" id="cfg-langflow-url" class="cw-input" placeholder="http://localhost:7860" />
+              </div>
+              <div class="cw-form-group">
+                <label class="cw-label"><span>Ingestion Flow ID</span><span class="cw-req">wajib</span></label>
+                <input type="text" id="cfg-ingestion-flow-id" class="cw-input" placeholder="xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx" />
+                <p class="settings-hint">Dari URL Langflow saat buka Ingestion Flow: <code>/flow/ID-INI</code></p>
+              </div>
+              <div class="cw-form-group">
+                <label class="cw-label"><span>RAG Chat Flow ID</span><span class="cw-req">wajib</span></label>
+                <input type="text" id="cfg-rag-flow-id" class="cw-input" placeholder="xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx" />
+                <p class="settings-hint">Dari URL Langflow saat buka RAG Chat Flow: <code>/flow/ID-INI</code></p>
+              </div>
+            </div>
+
+            <!-- Card 2: AstraDB Config -->
+            <div class="settings-card mfc-card-purple">
+              <div class="mfc-top-bar"></div>
+              <div class="settings-card-header">
+                <div class="settings-card-icon">🗄️</div>
+                <div>
+                  <div class="settings-card-title">AstraDB Vector Store</div>
+                  <div class="settings-card-desc">Token dan endpoint database AstraDB untuk vector search</div>
+                </div>
+                <div id="astra-status-badge" class="settings-status-badge settings-status-unknown">● Belum dicek</div>
+              </div>
+
+              <div class="cw-form-group">
+                <label class="cw-label"><span>AstraDB Application Token</span><span class="cw-req">wajib</span></label>
+                <div style="position:relative;">
+                  <input type="password" id="cfg-astra-token" class="cw-input" placeholder="AstraCS:xxxxxxxxxxxx..." style="padding-right:80px;" />
+                  <button type="button" class="settings-show-btn" onclick="toggleCfgVisibility('cfg-astra-token', this)">Tampilkan</button>
+                </div>
+                <p class="settings-hint">Dari Astra dashboard → Database → Generate Token (role: Database Administrator)</p>
+              </div>
+              <div class="cw-form-group">
+                <label class="cw-label"><span>AstraDB API Endpoint</span><span class="cw-req">wajib</span></label>
+                <input type="url" id="cfg-astra-endpoint" class="cw-input" placeholder="https://xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx-us-east1.apps.astra.datastax.com" />
+                <p class="settings-hint">Dari Astra dashboard → Database → Connect → API Endpoint</p>
+              </div>
+              <div class="cw-form-group">
+                <label class="cw-label"><span>Collection Name</span></label>
+                <input type="text" id="cfg-astra-collection" class="cw-input" placeholder="mitraku_catalog" value="mitraku_catalog" />
+              </div>
+            </div>
+
+          </div><!-- /.settings-grid -->
+
+            <!-- Action Bar -->
+            <div class="settings-action-bar" style="margin-top: 10px;">
+              <button type="button" class="btn-secondary-action" onclick="testLangflowConnection()">
+                🔍 Test Koneksi Langflow
+              </button>
+              <button type="button" class="btn-secondary-action" onclick="syncCatalogToLangflow()">
+                🔄 Sync Katalog AstraDB
+              </button>
+              <button type="button" class="btn-generate-cw" style="width:100%; margin-top:12px; padding:12px 28px;" onclick="saveIntegrationConfig()">
+                💾 Simpan & Aktifkan
+              </button>
+            </div>
+
+          </div><!-- /.cw-form-panel -->
+
+          <!-- Right Output Results Panel -->
+          <div class="cw-result-panel" style="display:flex; flex-direction:column; gap:24px;">
+            <!-- Status Log -->
+            <div class="settings-log" id="settings-log" style="display:flex; flex-direction:column; margin:0; flex-grow:1; border-color:var(--border-subtle); box-shadow:var(--shadow-sm);">
+              <div class="settings-log-header">
+                <span>📋 Log Aktivitas Integrasi</span>
+                <button type="button" class="settings-log-clear" onclick="clearSettingsLog()">Bersihkan</button>
+              </div>
+              <div id="settings-log-body" class="settings-log-body" style="flex-grow:1; max-height:360px; overflow-y:auto;">
+                <!-- Logs will appear here -->
+                <div class="log-line log-info" style="color:var(--text-muted); text-align:center; padding:40px 0;">
+                  <div style="font-size:32px; margin-bottom:12px;">📋</div>
+                  Log sistem integrasi akan muncul di sini saat Anda melakukan testing koneksi atau sync katalog.
+                </div>
+              </div>
+            </div>
+
+            <!-- Info Box: Cara Setup -->
+            <div class="settings-info-box" style="margin:0;">
+              <div class="settings-info-title">📖 Panduan Setup Langflow (3 Langkah)</div>
+              <div class="settings-info-steps">
+                <div class="settings-info-step">
+                  <span class="settings-step-num">1</span>
+                  <div>Buka <strong>localhost:7860</strong> (Langflow UI) → klik <strong>Import Flow</strong> → upload 2 file JSON dari folder <code>langflow/</code> project ini.</div>
+                </div>
+                <div class="settings-info-step">
+                  <span class="settings-step-num">2</span>
+                  <div>Di setiap flow yang di-import, klik node <strong>AstraDB</strong> → isi Token dan API Endpoint kamu. Klik node <strong>Google Embeddings</strong> → isi Gemini API Key.</div>
+                </div>
+                <div class="settings-info-step">
+                  <span class="settings-step-num">3</span>
+                  <div>Salin <strong>Flow ID</strong> dari URL browser saat membuka tiap flow (format: <code>/flow/XXXX-XXXX</code>) → paste ke form di atas → klik Simpan &amp; Aktifkan.</div>
+                </div>
+              </div>
+            </div>
+          </div><!-- /.cw-result-panel -->
+
+        </div><!-- /.cw-main-grid -->
+      </div><!-- /#settings-view -->
 
     <!-- Overlay for mobile sidebar -->
     <div id="sidebar-overlay" class="sidebar-overlay"></div>
-
-  </div>
+  </div><!-- /#settings-view -->
+  </div><!-- /.main-content -->
 
   
 
   <!-- MODAL: Confirmation Delete Conversation -->
-  <div id="delete-modal" class="modal-overlay" role="dialog" aria-modal="true" aria-labelledby="delete-modal-title" style="display:none;">
+  <div id="delete-modal" class="modal-overlay" role="dialog" aria-modal="true" aria-labelledby="delete-modal-title" style="display:none;" onclick="closeDeleteModal()">
     <div class="modal-card modal-confirm-card" onclick="event.stopPropagation()">
       <div class="confirm-icon">⚠️</div>
       <h3 class="confirm-title" id="delete-modal-title">Hapus percakapan?</h3>
@@ -1043,7 +1194,7 @@
   </div>
 
   <!-- MODAL: Product Context Switcher & Management -->
-  <div id="product-modal" class="modal-overlay" role="dialog" aria-modal="true" aria-labelledby="product-modal-title" style="display:none;">
+  <div id="product-modal" class="modal-overlay" role="dialog" aria-modal="true" aria-labelledby="product-modal-title" style="display:none;" onclick="closeProductModal()">
     <div class="modal-card modal-product-card" onclick="event.stopPropagation()">
       <div class="modal-header">
         <h3 id="product-modal-title">📦 Kelola & Pilih Produk Aktif</h3>
@@ -1121,7 +1272,7 @@
   </div>
 
   <!-- MODAL: Confirm Clear History -->
-  <div id="confirm-clear-modal" class="modal-overlay" role="dialog" aria-modal="true" aria-labelledby="confirm-clear-title" style="display:none;">
+  <div id="confirm-clear-modal" class="modal-overlay" role="dialog" aria-modal="true" aria-labelledby="confirm-clear-title" style="display:none;" onclick="closeClearHistoryModal()">
     <div class="modal-card modal-confirm-card" onclick="event.stopPropagation()">
       <div class="confirm-icon">🗑️</div>
       <h3 class="confirm-title" id="confirm-clear-title">Hapus seluruh riwayat?</h3>
@@ -1134,7 +1285,7 @@
   </div>
 
   <!-- MODAL: Konfirmasi Hapus Produk Katalog (BUG #10 FIX) -->
-  <div id="catalog-delete-modal" class="modal-overlay" role="dialog" aria-modal="true" aria-labelledby="catalog-delete-title" style="display:none;">
+  <div id="catalog-delete-modal" class="modal-overlay" role="dialog" aria-modal="true" aria-labelledby="catalog-delete-title" style="display:none;" onclick="closeCatalogDeleteModal()">
     <div class="modal-card modal-confirm-card" onclick="event.stopPropagation()">
       <div class="confirm-icon">🗑️</div>
       <h3 class="confirm-title" id="catalog-delete-title">Hapus produk dari katalog?</h3>
@@ -1146,6 +1297,6 @@
     </div>
   </div>
 
-  <script src="script.js?v=3.1"></script>
+  <script src="script.js?v=4.4"></script>
 </body>
 </html>
