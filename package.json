@@ -1,6 +1,6 @@
 {
   "name": "mitraku-ai",
-  "version": "2.6.0",
+  "version": "2.7.0",
   "description": "MitraKu AI — AI Marketing Suite for Indonesian UMKMs (Hacktiv8 Final Project)",
   "main": "index.js",
   "type": "module",

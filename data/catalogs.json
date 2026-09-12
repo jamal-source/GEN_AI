@@ -1,6 +1,15 @@
 {
   "default": [
     {
+      "id": "prod_1789224833219",
+      "name": "LAPTOP",
+      "category": "ELEKTRONIK",
+      "price": 2500000,
+      "stock": 50,
+      "description": "MURAH BAGUS COCOK UNTUK MAHSISWA",
+      "shipping_info": "JNE"
+    },
+    {
       "id": "prod_1789069383985",
       "name": "kopi hitam",
       "category": "sacetan",

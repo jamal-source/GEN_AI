@@ -2,7 +2,7 @@
 
 > **Dokumen ini adalah satu-satunya sumber kebenaran (Single Source of Truth) untuk proyek ini.**
 > Setiap AI Agent, developer, atau kolaborator WAJIB membaca dokumen ini sebelum menyentuh kode apapun.
-> Terakhir diperbarui: 9 September 2026
+> Terakhir diperbarui: 12 September 2026
 
 ---
 
@@ -86,12 +86,14 @@ UMKM Indonesia (khususnya skala kecil) menghadapi:
 **Cara kerja:**
 
 1. UMKM input katalog produk (nama, harga, stok, deskripsi) via form web
-2. Data di-embed ke Astra DB via Langflow (Flow 1 dipertahankan)
+2. Data otomatis di-embed ke Astra DB via Langflow saat produk ditambah/dihapus (fire-and-forget)
 3. Pelanggan bisa tanya ke chatbot: "Ada ukuran M?", "Ongkir ke Surabaya?"
-4. Chatbot menjawab berdasarkan data katalog aktual (RAG Flow 2 dipertahankan)
+4. Chatbot menjawab dari vector search AstraDB (RAG) — bila Langflow tidak tersedia, otomatis fallback ke Gemini/Groq dengan konteks katalog penuh
 5. Tersedia sebagai widget embed di website atau link shareable
 
-**Tech:** Langflow + Astra DB + Gemini 2.0 Flash (sudah ada, tinggal redirect)
+**Konfigurasi:** Tab **⚙️ Integrasi** di sidebar → isi URL Langflow, Flow ID, dan kredensial AstraDB. Config tersimpan di `data/langflow-config.json` (bertahan saat server restart).
+
+**Tech:** Langflow + Astra DB + Gemini 2.5 Flash + Groq (fallback berlapis)
 
 ### MODUL 2 — Riset Pasar Instan
 
@@ -155,7 +157,7 @@ UMKM Indonesia (khususnya skala kecil) menghadapi:
 | Frontend         | Next.js 15 (App Router)    | BARU                 | Routing per modul, SSR, modern |
 | Backend API      | Node.js Express            | LANJUTKAN (refactor) | Sudah ada, solid               |
 | AI / LLM         | Google Gemini 2.0 Flash    | SUDAH ADA            | API key tersedia               |
-| RAG Engine       | Langflow + Astra DB        | DIPERTAHANKAN        | Tepat untuk Modul 1            |
+| RAG Engine       | IBM Langflow + Astra DB     | ✅ LIVE (Settings)   | Diintegrasikan ke Modul 1 (v2.7) |
 | Database User    | PostgreSQL                 | SUDAH DI DOCKER      | Profil UMKM & history          |
 | Brand Kit Render | Puppeteer (Node.js)        | GANTI PILLOW         | HTML -> PNG/PDF yang cantik    |
 | Auth             | Clerk atau NextAuth        | TAMBAH               | Multi-user UMKM                |
@@ -186,6 +188,9 @@ UMKM Indonesia (khususnya skala kecil) menghadapi:
 | N8N_WEBHOOK_URL                 | .env                             | Tidak terpakai di arsitektur baru      |
 | /api/trigger-pipeline endpoint  | index.js                         | Pipeline lama                          |
 | /api/langflow-generate endpoint | index.js                         | Butuh n8n yang sudah dihapus           |
+| langflow/mitraku_ingestion_flow.json | langflow/                  | Digabung ke satu file `langflow/Mitraku AI.json` (v2.7) |
+| langflow/mitraku_rag_chat_flow.json  | langflow/                  | Digabung ke satu file `langflow/Mitraku AI.json` (v2.7) |
+| Script migrasi & dump JSON        | root proyek                     | Scratch artifact sekali pakai (deleted) |
 
 ---
 
@@ -197,10 +202,10 @@ UMKM Indonesia (khususnya skala kecil) menghadapi:
 | index.js — /api/title endpoint          | PERTAHANKAN | Tidak ada perubahan             |
 | public/script.js — Conversation Service | PERTAHANKAN | Core logic bagus                |
 | public/style.css                        | PERTAHANKAN | Desain sudah bagus              |
-| Langflow Flow 1 (Document Ingestion)    | PERTAHANKAN | Dipakai Modul 1                 |
-| Langflow Flow 2 (RAG Chat)              | PERTAHANKAN | Dipakai Modul 1 & 5             |
+| langflow/Mitraku AI.json                | PERTAHANKAN | Satu file flow gabungan (ingestion + RAG chat) |
 | docker-compose.yml — PostgreSQL         | PERTAHANKAN | Database user                   |
 | docker-compose.yml — Langflow           | PERTAHANKAN | RAG engine                      |
+| data/langflow-config.json               | BARU (v2.7) | Config Integrasi, dibuat otomatis |
 | product_service.py                      | ADAPTASI    | Simpan logika registrasi brand  |
 | docs/langflow_system_prompt.txt         | UPDATE      | Perbarui untuk persona Mitra AI |
 | docs/astra_db_metadata_spec.json        | PERTAHANKAN | Multi-tenancy spec relevan      |
@@ -270,6 +275,26 @@ UMKM Indonesia (khususnya skala kecil) menghadapi:
 - [x] Pembersihan total codebase & pembaruan `package.json` v2.6.0
 - [ ] Opsional Tahap Lanjutan: Migrasi ke Next.js 15 & Auth (Clerk/NextAuth) untuk skala enterprise Multi-Tenant
 
+### FASE 7 — Integrasi Langflow RAG + AstraDB (✅ SELESAI)
+
+- [x] Endpoint `/api/config` (GET dengan masking secret, POST dengan validasi URL)
+- [x] Endpoint `/api/test-langflow` untuk uji koneksi server Langflow
+- [x] Endpoint `/api/toko-pintar/sync` — sync manual katalog ke AstraDB
+- [x] View baru **⚙️ Integrasi** (tab ke-6) — form konfigurasi Langflow & AstraDB
+- [x] `POST /api/toko-pintar/chat` hybrid: RAG Langflow dulu → fallback otomatis ke Gemini/Groq
+- [x] Trigger ingestion otomatis saat produk ditambah/dihapus (non-blocking)
+- [x] Persistensi config ke `data/langflow-config.json` (survive restart)
+- [x] Helper `langflowRun()` + `catalogToText()` — deduplikasi kode Langflow
+- [x] Gabungkan 2 file flow lama menjadi `langflow/Mitraku AI.json`
+- [x] Ketahanan frontend: localStorage budget (3.5MB), `apiFetch` dengan body-read timeout, modal accessibility
+
+### FASE 8 — Pemeliharaan & Cleanup (✅ SELESAI)
+
+- [x] Hapus ~50.400 baris artifact untracked (script migrasi, dump JSON Langflow/OpenAPI, screenshot)
+- [x] Deduplikasi: `apiFetch`/`apiFetchJSON` → satu `apiFetch` dengan `bodyParser`
+- [x] Hapus dead code: `widgetFetch`, `_emergencyPrune`, `loadingWatchdog`, guard counter
+- [x] Bump `package.json` ke v2.7.0
+
 ---
 
 ## 8. ATURAN UNTUK AI AGENT
@@ -289,6 +314,7 @@ UMKM Indonesia (khususnya skala kecil) menghadapi:
 
 | Tanggal    | Versi | Perubahan                                                                                                                                                                                                                                                                                                                                     |
 | ---------- | ----- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 12 Sep 2026 | v2.7  | **FASE 7 & 8 SELESAI.** Integrasi Langflow RAG + AstraDB di Modul 1 Toko Pintar: endpoint `/api/config`, `/api/test-langflow`, `/api/toko-pintar/sync`; tab baru ⚙️ Integrasi (konfigurasi Langflow & AstraDB dengan persistensi `data/langflow-config.json`); chat hybrid RAG → fallback Gemini/Groq; auto-ingestion saat katalog berubah. Cleanup FASE 8: deduplikasi `apiFetch` + hapus ~50.400 baris artifact untracked. |
 | 9 Sep 2026 | v2.6  | **FASE 5 SELESAI.** Riset Pasar Instan (Modul 2): Live endpoint `POST /api/market-research`, 5th View Tab `📊 Riset Pasar` di top bar & sidebar, analisis rentang harga kompetitor, 3 strategi diferensiasi, 5 kata kunci SEO e-commerce dengan click-to-copy, dan rekomendasi platform jualan. **SELURUH 5 MODUL UTAMA MITRAKU AI SELESAI.** |
 | 9 Sep 2026 | v2.5  | **FASE 4 SELESAI.** Toko Pintar AI (Modul 1 - RAG CS 24 Jam): Sub-navigasi 3 mode (Kelola Katalog, Simulasi Chat CS, Link & Embed Widget), REST API `/api/toko-pintar/catalog` & RAG engine `/api/toko-pintar/chat`, dynamic quick prompt buttons.                                                                                            |
 | 9 Sep 2026 | v2.4  | **FASE 3 SELESAI.** Brand Kit Generator (Modul 3): UI Brand Kit Builder dengan 3rd View Tab, form kepribadian brand, dynamic JSON generator, Puppeteer rendering engine untuk download visual High-Res PNG & PDF, interactive color swatch cards dengan click-to-copy HEX codes.                                                              |
