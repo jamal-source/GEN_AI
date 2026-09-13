@@ -3,9 +3,10 @@ import express from 'express';
 import cors from 'cors';
 import path from 'path';
 import fs from 'fs';
-import { fileURLToPath } from 'url';
+import { fileURLToPath, pathToFileURL } from 'url';
 import { GoogleGenAI } from '@google/genai';
 import Groq from 'groq-sdk';
+import pg from 'pg';
 import rateLimit from 'express-rate-limit';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
@@ -59,9 +60,9 @@ const PROVIDERS = {
     fallbackModels: ['gemini-2.5-flash-lite', 'gemini-1.5-flash']
   },
   groq: {
-    model: 'llama-3.3-70b-versatile',
-    label: 'Llama 3.3 70B (Groq)',
-    fallbackModels: ['llama-3.1-70b-versatile', 'llama3-70b-8192']
+    model: 'openai/gpt-oss-120b',
+    label: 'GPT-OSS 120B (Groq)',
+    fallbackModels: ['openai/gpt-oss-20b', 'qwen/qwen3.8-27b']
   },
   openrouter: {
     model: 'deepseek/deepseek-chat',
@@ -510,6 +511,11 @@ PENTING: Berikan palet warna HEX yang sangat harmonis dan kontras yang pas sesua
 // ── POST /api/brand-kit/render-png ────────────────────────────
 // Puppeteer PNG Export for Brand Kit
 app.post('/api/brand-kit/render-png', async (req, res) => {
+  // Vercel = serverless + filesystem read-only: render PNG disarankan lewat
+  // tombol "Print / Simpan PDF" di browser. Fungsi ini tetap aktif untuk lokal/docker.
+  if (process.env.VERCEL) {
+    return res.status(501).json({ error: 'Unduhan PNG server dinonaktifkan di Vercel. Gunakan tombol Print / Simpan sebagai PDF pada kartu Brand Kit.' });
+  }
   const brandKitData = req.body.brand_kit;
   if (!brandKitData || !brandKitData.brand_name) {
     return res.status(400).json({ error: 'Data brand_kit tidak valid.' });
@@ -785,6 +791,108 @@ function saveCatalogs(catalogs) {
 
 let storeCatalogs = loadCatalogs();
 
+// ── Catalog storage: Postgres (Vercel / DATABASE_URL) dengan fallback file lokal ──
+// Vercel = serverless + filesystem read-only/ephemeral, jadi saat DATABASE_URL ada
+// katalog disimpan ke Postgres agar data persist antar-boot function.
+const DATABASE_URL = process.env.DATABASE_URL || process.env.POSTGRES_URL || '';
+const USE_CATALOG_PG = !!DATABASE_URL;
+let catalogPgPool = null;
+let catalogPgInit = null;
+
+async function getCatalogPg() {
+  if (!USE_CATALOG_PG) return null;
+  if (!catalogPgInit) {
+    catalogPgInit = (async () => {
+      const pool = new pg.Pool({
+        connectionString: DATABASE_URL,
+        ssl: /localhost|127\.0\.0\.1/.test(DATABASE_URL) ? undefined : { rejectUnauthorized: false }
+      });
+      await pool.query(`CREATE TABLE IF NOT EXISTS store_catalog (
+        id TEXT PRIMARY KEY,
+        store_id TEXT NOT NULL,
+        name TEXT NOT NULL,
+        category TEXT NOT NULL DEFAULT 'Umum',
+        price NUMERIC(12,2) NOT NULL,
+        stock INTEGER NOT NULL DEFAULT 0,
+        description TEXT NOT NULL DEFAULT '',
+        shipping_info TEXT NOT NULL DEFAULT '',
+        created_at TIMESTAMPTZ NOT NULL DEFAULT now()
+      )`);
+      await pool.query(`CREATE INDEX IF NOT EXISTS idx_store_catalog_store ON store_catalog (store_id)`);
+      console.log('[catalog] Postgres store siap (Vercel/production).');
+      return pool;
+    })().catch(err => {
+      console.error('[catalog] Postgres init gagal, fallback ke file:', err.message);
+      return null;
+    });
+  }
+  return catalogPgInit;
+}
+
+const rowToProduct = r => ({
+  id: r.id,
+  name: r.name,
+  category: r.category,
+  price: Number(r.price),
+  stock: Number(r.stock),
+  description: r.description,
+  shipping_info: r.shipping_info
+});
+
+async function catalogEnsureSeed(storeId) {
+  const pool = await getCatalogPg();
+  if (pool) {
+    const { rows } = await pool.query('SELECT 1 FROM store_catalog WHERE store_id=$1 LIMIT 1', [storeId]);
+    if (rows.length === 0) {
+      for (const p of DEFAULT_CATALOG) {
+        await pool.query(
+          'INSERT INTO store_catalog (id, store_id, name, category, price, stock, description, shipping_info) VALUES ($1,$2,$3,$4,$5,$6,$7,$8) ON CONFLICT (id) DO NOTHING',
+          [p.id, storeId, p.name, p.category, p.price, p.stock, p.description, p.shipping_info]
+        );
+      }
+    }
+    return;
+  }
+  if (!storeCatalogs[storeId]) storeCatalogs[storeId] = [...DEFAULT_CATALOG];
+}
+
+async function catalogList(storeId) {
+  const pool = await getCatalogPg();
+  if (pool) {
+    const { rows } = await pool.query(
+      'SELECT id, name, category, price, stock, description, shipping_info FROM store_catalog WHERE store_id=$1 ORDER BY created_at DESC',
+      [storeId]
+    );
+    return rows.map(rowToProduct);
+  }
+  return storeCatalogs[storeId] || storeCatalogs.default || [];
+}
+
+async function catalogCreate(storeId, product) {
+  const pool = await getCatalogPg();
+  if (pool) {
+    await pool.query(
+      'INSERT INTO store_catalog (id, store_id, name, category, price, stock, description, shipping_info) VALUES ($1,$2,$3,$4,$5,$6,$7,$8)',
+      [product.id, storeId, product.name, product.category, product.price, product.stock, product.description, product.shipping_info]
+    );
+    return;
+  }
+  if (!storeCatalogs[storeId]) storeCatalogs[storeId] = [...DEFAULT_CATALOG];
+  storeCatalogs[storeId].unshift(product);
+  saveCatalogs(storeCatalogs);
+}
+
+async function catalogRemove(storeId, id) {
+  const pool = await getCatalogPg();
+  if (pool) {
+    await pool.query('DELETE FROM store_catalog WHERE store_id=$1 AND id=$2', [storeId, id]);
+    return;
+  }
+  if (!storeCatalogs[storeId]) storeCatalogs[storeId] = [...DEFAULT_CATALOG];
+  storeCatalogs[storeId] = storeCatalogs[storeId].filter(p => p.id !== id);
+  saveCatalogs(storeCatalogs);
+}
+
 // ── Persistensi konfigurasi Langflow/AstraDB (survive restart server) ──
 const CONFIG_FILE = path.join(DATA_DIR, 'langflow-config.json');
 
@@ -817,23 +925,26 @@ function saveLangflowConfig() {
 loadLangflowConfig();
 
 // GET /api/toko-pintar/catalog
-app.get('/api/toko-pintar/catalog', (req, res) => {
-  const storeId = req.query.store_id || 'default';
-  const list = storeCatalogs[storeId] || storeCatalogs.default || [];
-  res.json({ success: true, store_id: storeId, catalog: list });
+app.get('/api/toko-pintar/catalog', async (req, res) => {
+  const storeId = (req.query.store_id || 'default').toString().slice(0, 100);
+  try {
+    await catalogEnsureSeed(storeId);
+    const list = await catalogList(storeId);
+    res.json({ success: true, store_id: storeId, catalog: list });
+  } catch (err) {
+    console.error('[catalog] GET gagal:', err.message);
+    res.status(500).json({ error: 'Gagal memuat katalog produk.' });
+  }
 });
 
 // POST /api/toko-pintar/catalog
-app.post('/api/toko-pintar/catalog', (req, res) => {
+app.post('/api/toko-pintar/catalog', async (req, res) => {
   const { store_id = 'default', name, category, price, stock, description, shipping_info } = req.body;
   if (!name || price === undefined) {
     return res.status(400).json({ error: 'Nama produk dan harga wajib diisi.' });
   }
 
-  if (!storeCatalogs[store_id]) {
-    storeCatalogs[store_id] = [...DEFAULT_CATALOG];
-  }
-
+  const storeId = store_id.toString().slice(0, 100);
   const newProd = {
     id: 'prod_' + Date.now(),
     name: name.trim(),
@@ -844,36 +955,48 @@ app.post('/api/toko-pintar/catalog', (req, res) => {
     shipping_info: (shipping_info || '').trim()
   };
 
-  storeCatalogs[store_id].unshift(newProd);
-  saveCatalogs(storeCatalogs);
-  res.json({ success: true, product: newProd, catalog: storeCatalogs[store_id] });
+  try {
+    await catalogEnsureSeed(storeId);
+    await catalogCreate(storeId, newProd);
+    const list = await catalogList(storeId);
+    res.json({ success: true, product: newProd, catalog: list });
 
-  // Trigger Langflow ingestion async (non-blocking)
-  triggerLangflowIngestion(catalogToText(storeCatalogs[store_id], store_id));
+    // Trigger Langflow ingestion async (non-blocking)
+    triggerLangflowIngestion(catalogToText(list, storeId));
+  } catch (err) {
+    console.error('[catalog] POST gagal:', err.message);
+    res.status(500).json({ error: 'Gagal menyimpan produk.' });
+  }
 });
 
 // DELETE /api/toko-pintar/catalog/:id
-app.delete('/api/toko-pintar/catalog/:id', (req, res) => {
+app.delete('/api/toko-pintar/catalog/:id', async (req, res) => {
   const { id } = req.params;
-  const storeId = req.query.store_id || 'default';
-  if (!storeCatalogs[storeId]) storeCatalogs[storeId] = [...DEFAULT_CATALOG];
-  storeCatalogs[storeId] = storeCatalogs[storeId].filter(p => p.id !== id);
-  saveCatalogs(storeCatalogs);
-  res.json({ success: true, catalog: storeCatalogs[storeId] });
+  const storeId = (req.query.store_id || 'default').toString().slice(0, 100);
+  try {
+    await catalogEnsureSeed(storeId);
+    await catalogRemove(storeId, id);
+    const list = await catalogList(storeId);
+    res.json({ success: true, catalog: list });
 
-  // Re-sync after delete
-  triggerLangflowIngestion(catalogToText(storeCatalogs[storeId], storeId));
+    // Re-sync after delete
+    triggerLangflowIngestion(catalogToText(list, storeId));
+  } catch (err) {
+    console.error('[catalog] DELETE gagal:', err.message);
+    res.status(500).json({ error: 'Gagal menghapus produk.' });
+  }
 });
 
 // POST /api/toko-pintar/sync — manual sync trigger from Settings UI
 app.post('/api/toko-pintar/sync', async (req, res) => {
-  const storeId = req.body.store_id || 'default';
-  const catalog = storeCatalogs[storeId] || [];
+  const storeId = (req.body.store_id || 'default').toString().slice(0, 100);
   try {
+    const catalog = await catalogList(storeId);
     await triggerLangflowIngestion(catalogToText(catalog, storeId));
     res.json({ success: true, synced: catalog.length, store_id: storeId });
   } catch (err) {
-    res.status(500).json({ success: false, error: err.message });
+    console.error('[catalog] sync gagal:', err.message);
+    res.status(500).json({ success: false, error: 'Sync katalog gagal.' });
   }
 });
 
@@ -896,7 +1019,8 @@ app.post('/api/toko-pintar/chat', csChatLimiter, async (req, res) => {
   }
 
   // ── Fallback: Gemini/Groq with full catalog context ───────
-  const catalog = storeCatalogs[store_id] || storeCatalogs.default || [];
+  await catalogEnsureSeed(store_id);
+  const catalog = await catalogList(store_id);
   const formattedCatalog = catalog.length > 0 ? catalog.map((p, i) => `
 [Produk ${i + 1}]
 - Nama Produk: ${p.name}
@@ -1050,21 +1174,29 @@ async function callOpenRouter(conversation, customInstruction = SYSTEM_PROMPT) {
 }
 
 // ── Server Start ──────────────────────────────────────────────
-const server = app.listen(PORT, () => {
-  const geminiReady = !!process.env.GEMINI_API_KEY?.trim();
-  const groqReady   = !!process.env.GROQ_API_KEY?.trim();
-  const openRouterReady = !!process.env.OPENROUTER_API_KEY?.trim();
+// Guard: hanya listen saat index.js dijalankan langsung (node index.js / npm start);
+// saat di-import oleh Vercel (api/index.js) cukup export app-nya saja.
+const isMain = process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href;
 
-  console.log(`\n🚀 MitraKu AI — http://localhost:${PORT}`);
-  console.log(`   Gemini     : ${geminiReady ? '✓ Siap' : '✗ Isi GEMINI_API_KEY di .env'}`);
-  console.log(`   Groq       : ${groqReady   ? '✓ Siap' : '✗ Opsional (GROQ_API_KEY)'}`);
-  console.log(`   OpenRouter : ${openRouterReady ? '✓ Siap' : '✗ Opsional (OPENROUTER_API_KEY)'}\n`);
-});
+if (isMain) {
+  const server = app.listen(PORT, () => {
+    const geminiReady = !!process.env.GEMINI_API_KEY?.trim();
+    const groqReady   = !!process.env.GROQ_API_KEY?.trim();
+    const openRouterReady = !!process.env.OPENROUTER_API_KEY?.trim();
 
-server.on('error', (err) => {
-  if (err.code === 'EADDRINUSE') {
-    console.error(`\n❌ Port ${PORT} sedang digunakan. Tutup proses lain lalu jalankan 'npm start'.\n`);
-  } else {
-    console.error('Server error:', err);
-  }
-});
+    console.log(`\n🚀 MitraKu AI — http://localhost:${PORT}`);
+    console.log(`   Gemini     : ${geminiReady ? '✓ Siap' : '✗ Isi GEMINI_API_KEY di .env'}`);
+    console.log(`   Groq       : ${groqReady   ? '✓ Siap' : '✗ Opsional (GROQ_API_KEY)'}`);
+    console.log(`   OpenRouter : ${openRouterReady ? '✓ Siap' : '✗ Opsional (OPENROUTER_API_KEY)'}\n`);
+  });
+
+  server.on('error', (err) => {
+    if (err.code === 'EADDRINUSE') {
+      console.error(`\n❌ Port ${PORT} sedang digunakan. Tutup proses lain lalu jalankan 'npm start'.\n`);
+    } else {
+      console.error('Server error:', err);
+    }
+  });
+}
+
+export default app;

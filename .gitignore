@@ -7,5 +7,20 @@
 scratch/
 __MACOSX/
 package-lock.json
+# Folder kerja tooling lokal
+.opencode/
+.vercel/
+todo.md
+# Agent skills terinstal otomatis oleh Vercel CLI / tooling lokal
+.claude/
+.agents/
+.bob/
+skills-lock.json
+# File data runtime yang bisa berisi secret / data pengguna — tidak boleh masuk git
+data/langflow-config.json
+data/catalogs.json
 
 
+
+.vercel
+.env*

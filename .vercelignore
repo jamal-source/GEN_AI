@@ -1,0 +1,10 @@
+#
+# Upload kontrol untuk Vercel CLI
+# (bukan bagian dari hasil build; node_modules di-install ulang oleh Vercel)
+#
+node_modules
+.env
+.env.*
+!.env.example
+.git
+.vercel

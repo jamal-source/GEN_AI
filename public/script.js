@@ -624,7 +624,7 @@ activeConvId = null;
     const radio = document.querySelector(`input[name="model-choice"][value="${val}"]`);
     if (radio) radio.checked = true;
     if (modelLabel) {
-      if (val === 'groq') modelLabel.textContent = 'Llama 3.3 70B (Groq)';
+      if (val === 'groq') modelLabel.textContent = 'GPT-OSS 120B (Groq)';
       else if (val === 'openrouter') modelLabel.textContent = 'OpenRouter AI';
       else modelLabel.textContent = 'Gemini 2.5 Flash';
     }
