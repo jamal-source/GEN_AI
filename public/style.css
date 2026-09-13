@@ -3000,3 +3000,17 @@ button, input, textarea, select {
 .settings-subnav-btn:hover { border-color: var(--border-strong); color: var(--text-main); }
 .settings-subnav-btn.active { background: var(--bg-app); border-color: var(--brand-500); color: var(--text-main); box-shadow: var(--focus-ring); }
 .settings-umum-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 16px; padding: 20px 0; max-width: 1100px; margin: 0 auto; }
+/* ═══ PHASE V3.0 §39: DASHBOARD ONBOARDING (first-run) ═══ */
+.dash-onboard-card { position: relative; display: flex; flex-wrap: wrap; gap: 18px 26px; align-items: center; background: linear-gradient(135deg, rgba(99,102,241,.09), rgba(16,185,129,.09)); border: 1px solid var(--border-subtle); border-radius: 16px; padding: 20px 22px; margin-bottom: 20px; }
+.dash-ob-head { flex: 1 1 260px; min-width: 220px; }
+.dash-ob-badge { display: inline-flex; align-items: center; gap: 6px; font-size: 11px; font-weight: 800; letter-spacing: .06em; text-transform: uppercase; color: var(--color-ai-teal, #14b8a6); margin-bottom: 6px; }
+.dash-ob-title { margin: 0 0 4px; font-size: 16px; font-weight: 800; color: var(--text-main, #111827); }
+.dash-ob-desc { margin: 0; font-size: 13px; color: var(--text-muted, #6b7280); }
+.dash-ob-steps { display: flex; flex-direction: column; gap: 10px; flex: 2 1 300px; }
+.dash-ob-step { display: flex; align-items: center; gap: 10px; font-size: 13px; color: var(--text-main, #111827); }
+.dash-ob-step svg { flex: none; opacity: .85; color: var(--color-ai-teal, #14b8a6); }
+.dash-ob-step b { font-weight: 700; }
+.dash-ob-actions { position: relative; flex: 1 1 200px; display: flex; flex-direction: column; gap: 8px; min-width: 200px; }
+.dash-ob-actions .btn-primary-action { width: 100%; justify-content: center; }
+.dash-ob-close { position: absolute; top: -6px; right: -6px; width: 26px; height: 26px; border-radius: 50%; border: none; background: var(--bg-surface, #fff); color: var(--text-muted, #6b7280); font-size: 16px; line-height: 1; cursor: pointer; box-shadow: var(--shadow-sm, 0 1px 2px rgba(0,0,0,.08)); }
+.dash-ob-close:hover { color: var(--text-main, #111827); }

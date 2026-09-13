@@ -101,18 +101,36 @@
   window.copyToClipboard = copyToClipboard;
 
   window.dismissOnboarding = function () {
-    const card = $('onboarding-card');
-    if (card) card.style.display = 'none';
+    ['onboarding-card', 'dash-onboard-card'].forEach(id => {
+      const el = $(id);
+      if (el) el.style.display = 'none';
+    });
     safeSet('mitraku_onboarding_dismissed', 'true');
   };
 
-  function initOnboarding() {
-    const card = $('onboarding-card');
-    if (!card) return;
-    const isDismissed = safeGet('mitraku_onboarding_dismissed') === 'true';
-    if (isDismissed) {
-      card.style.display = 'none';
+  window.dismissDashboardOnboarding = function () {
+    window.dismissOnboarding();
+  };
+
+  window.dashOnboardAction = function (action) {
+    window.dismissOnboarding();
+    if (action === 'product') {
+      if (typeof openProductModal === 'function') openProductModal();
+    } else if (action === 'tools') {
+      const cards = document.querySelector('.dash-cards');
+      if (cards) cards.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    } else if (action === 'chat') {
+      if (typeof window.switchView === 'function') window.switchView('chat');
     }
+  };
+
+  function initOnboarding() {
+    ['onboarding-card', 'dash-onboard-card'].forEach(id => {
+      const card = $(id);
+      if (!card) return;
+      const isDismissed = safeGet('mitraku_onboarding_dismissed') === 'true';
+      if (isDismissed) card.style.display = 'none';
+    });
   }
 
   /* ── MODAL ACCESSIBILITY HELPERS (focus trap + return focus) ── */

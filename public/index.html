@@ -240,7 +240,24 @@
       <!-- VIEW 0: DASHBOARD (command center) -->
       <div id="dashboard-view" class="view-container active">
         <div class="dash-wrap">
-          <header class="dash-hero">
+          <!-- ONBOARDING §39: first-run welcome on dashboard -->
+          <div class="dash-onboard-card" id="dash-onboard-card">
+            <div class="dash-ob-head">
+              <div class="dash-ob-badge"><svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg> Panduan Mulai</div>
+              <h2 class="dash-ob-title">Selamat datang! Siapkan MitraKu AI dalam 3 langkah.</h2>
+              <p class="dash-ob-desc">Semua fitur membaca produk aktif yang kamu simpan, jadi mulai dari langkah pertama.</p>
+            </div>
+            <div class="dash-ob-steps">
+              <div class="dash-ob-step"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><use href="#ic-box"></use></svg><span>Atur <b>Produk Aktif</b> — nama brand &amp; varian produkmu.</span></div>
+              <div class="dash-ob-step"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><use href="#ic-pen"></use></svg><span>Pilih <b>Alat AI</b> di bawah: konten, brand, atau riset pasar.</span></div>
+              <div class="dash-ob-step"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><use href="#ic-chat"></use></svg><span>Tanya <b>Mitra Chat</b> soal strategi promosi &amp; legalitas usaha.</span></div>
+            </div>
+            <div class="dash-ob-actions">
+              <button type="button" class="btn-primary-action" onclick="dashOnboardAction('product')">Mulai: Atur Produk Aktif</button>
+              <button type="button" class="btn-secondary-sm" onclick="dismissDashboardOnboarding()">Lewati</button>
+              <button type="button" class="dash-ob-close" onclick="dismissDashboardOnboarding()" title="Lewati panduan" aria-label="Lewati panduan">&times;</button>
+            </div>
+          </div>          <header class="dash-hero">
             <h1>Selamat datang di MitraKu AI</h1>
             <p>Apa yang ingin kamu kerjakan hari ini?</p>
           </header>
