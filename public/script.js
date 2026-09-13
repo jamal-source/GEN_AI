@@ -7,6 +7,12 @@
   const STORAGE_KEY   = 'mitraku_conversations_v2';
   const ACTIVE_ID_KEY = 'mitraku_active_conv_id';
   const THEME_KEY     = 'mitraku_theme';
+  const GROUP_LABELS  = {
+    today:     'Hari Ini',
+    yesterday: 'Kemarin',
+    last7Days: '7 Hari Terakhir',
+    older:     'Lebih Lama'
+  };
   const PRODUCT_KEY   = 'mitraku_active_product';
   const SIDEBAR_KEY   = 'mitraku_sidebar_open';
   const VIEW_KEY      = 'mitraku_active_view';
@@ -15,6 +21,8 @@
   let activeConvId      = safeGet(ACTIVE_ID_KEY) || null;
   let selectedProvider  = 'gemini';
   let isGenerating      = false;
+  let pendingAttachment = null;   // lampiran gambar utk kirim terakhir
+  let productPhotoData  = '';     // foto produk aktif (data URL, client-side)
   let pendingDeleteId   = null;
   let pendingCatalogDeleteId = null;
 
@@ -254,12 +262,25 @@
     const inputBrand   = $('input-product-name');
     const inputVariant = $('input-variant-name');
     const inputLegal   = $('input-legalities');
+    const prev = getActiveProductContext();
     const p = {
       brand:      inputBrand   ? inputBrand.value.trim()   : '',
       variant:    inputVariant ? inputVariant.value.trim() : '',
-      legalities: inputLegal   ? inputLegal.value.trim()   : ''
+      legalities: inputLegal   ? inputLegal.value.trim()   : '',
+      photo:      productPhotoData || prev.photo || ''
     };
-    safeSet(PRODUCT_KEY, JSON.stringify(p));
+    const saved = safeSet(PRODUCT_KEY, JSON.stringify(p));
+    if (!saved) {
+      if (p.photo) {
+        p.photo = '';
+        const retry = safeSet(PRODUCT_KEY, JSON.stringify(p));
+        if (retry) showToast('⚠️ Foto terlalu besar — produk disimpan tanpa foto.');
+        else showToast('⚠️ Gagal menyimpan produk (localStorage penuh).');
+      } else {
+        showToast('⚠️ Gagal menyimpan produk (localStorage penuh).');
+      }
+    }
+    productPhotoData = '';
     initActiveProduct();
     window.closeProductModal();
     if (activeConvId) {
@@ -600,13 +621,14 @@ activeConvId = null;
   function getActiveProductContext() {
     try {
       const raw = safeGet(PRODUCT_KEY);
-      if (!raw) return { brand: '', variant: '', legalities: '' };
+      if (!raw) return { brand: '', variant: '', legalities: '', photo: '' };
       const parsed = JSON.parse(raw);
       return (parsed && typeof parsed === 'object') ? {
         brand:      typeof parsed.brand === 'string' ? parsed.brand : '',
         variant:    typeof parsed.variant === 'string' ? parsed.variant : '',
-        legalities: typeof parsed.legalities === 'string' ? parsed.legalities : ''
-      } : { brand: '', variant: '', legalities: '' };
+        legalities: typeof parsed.legalities === 'string' ? parsed.legalities : '',
+        photo:      typeof parsed.photo === 'string' ? parsed.photo : ''
+      } : { brand: '', variant: '', legalities: '', photo: '' };
     } catch {
       return { brand: '', variant: '', legalities: '' };
     }
@@ -624,6 +646,28 @@ activeConvId = null;
     if (inputBrand)   inputBrand.value   = p.brand       || '';
     if (inputVariant) inputVariant.value = p.variant     || '';
     if (inputLegal)   inputLegal.value   = p.legalities  || '';
+
+    renderProductPhoto(p.photo);
+    productPhotoData = '';
+  }
+
+  function renderProductPhoto(photo) {
+    const dashSlot  = $('dash-product-photo');
+    const prevImg   = $('product-photo-img');
+    const placehold = $('product-photo-placeholder');
+    const rmBtn     = $('product-photo-remove');
+    if (dashSlot) {
+      const has = !!photo;
+      dashSlot.style.display = has ? 'flex' : 'none';
+      dashSlot.innerHTML = has ? '<img src="' + photo + '" alt="Foto produk aktif" />' : '';
+    }
+    if (prevImg) {
+      const has = !!photo;
+      prevImg.style.display = has ? 'block' : 'none';
+      if (has) prevImg.src = photo;
+    }
+    if (placehold) placehold.style.display = photo ? 'none' : 'flex';
+    if (rmBtn)     rmBtn.style.display     = photo ? '' : 'none';
   }
 
   /* ── MODEL SELECTOR (AI AGENT DROPDOWN) ─────────────────────── */
@@ -753,13 +797,6 @@ activeConvId = null;
   }
 
   /* ── HISTORY RENDERER ───────────────────────────────────────── */
-  const GROUP_LABELS = {
-    today:     'Hari Ini',
-    yesterday: 'Kemarin',
-    last7Days: '7 Hari Terakhir',
-    older:     'Lebih Lama'
-  };
-
   function renderHistory(query = '') {
     if (!historyList) return;
     historyList.innerHTML = '';
@@ -1014,6 +1051,74 @@ activeConvId = null;
   });
 
   /* ── CHAT FORM SUBMISSION ───────────────────────────────────── */
+  /* ── UPLOAD & LAMPIRAN ─────────────────────────────────────── */
+  function downscaleImageFile(imageFile, maxDim) {
+    return new Promise((resolve, reject) => {
+      const url = URL.createObjectURL(imageFile);
+      const img = new Image();
+      img.onload = () => {
+        try {
+          const scale = Math.min(1, maxDim / Math.max(img.width, img.height));
+          const canvas = document.createElement('canvas');
+          canvas.width  = Math.max(1, Math.round(img.width * scale));
+          canvas.height = Math.max(1, Math.round(img.height * scale));
+          canvas.getContext('2d').drawImage(img, 0, 0, canvas.width, canvas.height);
+          URL.revokeObjectURL(url);
+          resolve(canvas.toDataURL('image/jpeg', 0.85));
+        } catch (err) { URL.revokeObjectURL(url); reject(err); }
+      };
+      img.onerror = () => { URL.revokeObjectURL(url); reject(new Error('Gagal membaca gambar')); };
+      img.src = url;
+    });
+  }
+
+  window.pickChatImage = async function (fileInput) {
+    const file = fileInput && fileInput.files && fileInput.files[0];
+    if (!file) return;
+    if (!/^image\//.test(file.type)) { showToast('⚠️ Hanya file gambar yang didukung.'); fileInput.value = ''; return; }
+    try {
+      const data = await downscaleImageFile(file, 1024);
+      pendingAttachment = data;
+      const thumb = $('composer-attach-thumb');
+      const name  = $('composer-attach-name');
+      const chip  = $('composer-attach-chip');
+      if (thumb) thumb.src = data;
+      if (name)  name.textContent = file.name || 'Gambar';
+      if (chip)  chip.style.display = 'flex';
+    } catch (err) {
+      showToast('⚠️ Gagal memproses gambar: ' + (err.message || 'file rusak'));
+    } finally {
+      if (fileInput) fileInput.value = '';
+    }
+  };
+
+  window.clearAttachment = function () {
+    pendingAttachment = null;
+    const chip  = $('composer-attach-chip');
+    const thumb = $('composer-attach-thumb');
+    if (chip)  chip.style.display = 'none';
+    if (thumb) thumb.src = '';
+  };
+
+  window.pickProductPhoto = async function (fileInput) {
+    const file = fileInput && fileInput.files && fileInput.files[0];
+    if (!file) return;
+    if (!/^image\//.test(file.type)) { showToast('⚠️ Hanya file gambar yang didukung.'); fileInput.value = ''; return; }
+    try {
+      productPhotoData = await downscaleImageFile(file, 640);
+      renderProductPhoto(productPhotoData);
+    } catch (err) {
+      showToast('⚠️ Gagal memproses foto: ' + (err.message || 'file rusak'));
+    } finally {
+      if (fileInput) fileInput.value = '';
+    }
+  };
+
+  window.clearProductPhoto = function () {
+    productPhotoData = '';
+    renderProductPhoto('');
+  };
+
   window.handleChatSubmit = async function () {
     const text = input ? input.value.trim() : '';
 
@@ -1028,7 +1133,7 @@ activeConvId = null;
       }
     }
 
-    if (!text) return;
+    if (!text && !pendingAttachment) return;
 
     window._generatingStartTime = Date.now();
     hideEmpty();
@@ -1042,6 +1147,8 @@ activeConvId = null;
     }
 
     // ── BUGFIX: Ambil history SEBELUM addMessage agar user message tidak duplikat ──
+    const imageForSend  = pendingAttachment;
+    const attachMeta    = imageForSend ? { image: imageForSend } : null;
     const convBeforeSend = svc.get(activeConvId);
     const history = convBeforeSend
       ? convBeforeSend.messages.map(m => ({ role: m.role, text: m.text }))
@@ -1049,9 +1156,10 @@ activeConvId = null;
     // Tambahkan pesan user baru ke ujung history yang dikirim ke API
     history.push({ role: 'user', text });
 
-    svc.addMessage(activeConvId, 'user', text);
-    if (chatBox) chatBox.appendChild(buildRow('user', text, new Date().toISOString()));
+    svc.addMessage(activeConvId, 'user', text, attachMeta);
+    if (chatBox) chatBox.appendChild(buildRow('user', text, new Date().toISOString(), attachMeta));
     clearInput();
+    if (imageForSend) window.clearAttachment();
     setLoading(true);
 
     const botRow = buildThinkingRow();
@@ -1066,7 +1174,8 @@ activeConvId = null;
         body:    JSON.stringify({
           conversation: history,
           provider: selectedProvider,
-          product_context: getActiveProductContext()
+          product_context: getActiveProductContext(),
+          image: imageForSend || undefined
         })
       });
 
@@ -1756,7 +1865,14 @@ try {
 
     const bubble = row.querySelector('.bubble');
     if (isUser) {
-      bubble.textContent = text;
+      if (metadata && metadata.image) {
+        const img = document.createElement('img');
+        img.className = 'chat-attach-img';
+        img.src = metadata.image;
+        img.alt = 'Lampiran gambar';
+        bubble.appendChild(img);
+      }
+      if (text) bubble.appendChild(document.createTextNode(text));
     } else {
       bubble.innerHTML = renderMd(text);
       safeHighlight(bubble);

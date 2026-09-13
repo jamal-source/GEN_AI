@@ -338,6 +338,14 @@ app.post('/api/chat', async (req, res) => {
   const conversation = req.body.conversation;
   const productContext = req.body.product_context;
 
+  // Lampiran gambar opsional (data URL base64) hanya pada pesan user terakhir.
+  const image = (typeof req.body.image === 'string' && req.body.image.startsWith('data:image/'))
+    ? req.body.image
+    : null;
+  if (image && image.length > 6 * 1024 * 1024) {
+    return res.status(400).json({ error: 'Gambar terlalu besar (maksimal sekitar 4 MB setelah dikompresi).' });
+  }
+
   if (!Array.isArray(conversation) || conversation.length === 0) {
     return res.status(400).json({ error: 'Field "conversation" harus berupa array dan tidak boleh kosong.' });
   }
@@ -371,9 +379,9 @@ app.post('/api/chat', async (req, res) => {
     let lastErr;
     for (const p of order) {
       try {
-        if (p === 'gemini')        text = await callGemini(safeConv, activeSystemPrompt);
-        else if (p === 'groq')     text = await callGroq(safeConv, activeSystemPrompt);
-        else                       text = await callOpenRouter(safeConv, activeSystemPrompt);
+        if (p === 'gemini')        text = await callGemini(safeConv, activeSystemPrompt, image);
+        else if (p === 'groq')     text = await callGroq(safeConv, activeSystemPrompt, image);
+        else                       text = await callOpenRouter(safeConv, activeSystemPrompt, image);
         actualProvider = (p === order[0]) ? p : p + ' (fallback)';
         break;
       } catch (err) {
@@ -1116,7 +1124,10 @@ ATURAN CUSTOMER SERVICE SANGAT PENTING:
 });
 
 // ── LLM Caller: Gemini ────────────────────────────────────────
-async function callGemini(conversation, customInstruction = SYSTEM_PROMPT) {
+// Catatan jujur untuk model teks-saja bila pengguna melampirkan gambar.
+const IMAGE_TEXT_ONLY_NOTE = '\n\n[Pengguna melampirkan 1 gambar. Model ini hanya membaca teks (belum mendukung gambar) — jawab berdasarkan teks di atas dan jangan menebak isi gambar.]';
+
+async function callGemini(conversation, customInstruction = SYSTEM_PROMPT, image = null) {
   const client = getGeminiClient();
   if (!client) throw new Error('Kunci API Google AI belum dikonfigurasi di server.');
 
@@ -1124,6 +1135,17 @@ async function callGemini(conversation, customInstruction = SYSTEM_PROMPT) {
     role: msg.role === 'model' ? 'model' : 'user',
     parts: [{ text: msg.text || '' }]
   }));
+
+  // Gemini mendukung gambar inline (base64) pada pesan user terakhir.
+  if (image) {
+    const m = /^data:([^;,]+);base64,(.+)$/.exec(image);
+    if (m) {
+      const last = contents[contents.length - 1];
+      if (last && last.role === 'user') {
+        last.parts.push({ inlineData: { mimeType: m[1], data: m[2] } });
+      }
+    }
+  }
 
   const modelsToTry = [PROVIDERS.gemini.model, ...PROVIDERS.gemini.fallbackModels];
   let lastErr;
@@ -1145,7 +1167,7 @@ async function callGemini(conversation, customInstruction = SYSTEM_PROMPT) {
 }
 
 // ── LLM Caller: Groq ──────────────────────────────────────────
-async function callGroq(conversation, customInstruction = SYSTEM_PROMPT) {
+async function callGroq(conversation, customInstruction = SYSTEM_PROMPT, image = null) {
   const client = getGroqClient();
   if (!client) throw new Error('Kunci API Groq belum dikonfigurasi di server.');
 
@@ -1156,6 +1178,15 @@ async function callGroq(conversation, customInstruction = SYSTEM_PROMPT) {
       content: msg.text || ''
     }))
   ];
+
+  if (image) {
+    for (let i = messages.length - 1; i >= 0; i--) {
+      if (messages[i].role === 'user') {
+        messages[i].content = (messages[i].content || '') + IMAGE_TEXT_ONLY_NOTE;
+        break;
+      }
+    }
+  }
 
   const modelsToTry = [PROVIDERS.groq.model, ...PROVIDERS.groq.fallbackModels];
   let lastErr;
@@ -1176,7 +1207,7 @@ async function callGroq(conversation, customInstruction = SYSTEM_PROMPT) {
 }
 
 // ── LLM Caller: OpenRouter ───────────────────────────────────
-async function callOpenRouter(conversation, customInstruction = SYSTEM_PROMPT) {
+async function callOpenRouter(conversation, customInstruction = SYSTEM_PROMPT, image = null) {
   const key = process.env.OPENROUTER_API_KEY?.trim();
   if (!key) throw new Error('Kunci API OpenRouter belum dikonfigurasi di server.');
 
@@ -1187,6 +1218,15 @@ async function callOpenRouter(conversation, customInstruction = SYSTEM_PROMPT) {
       content: msg.text || ''
     }))
   ];
+
+  if (image) {
+    for (let i = messages.length - 1; i >= 0; i--) {
+      if (messages[i].role === 'user') {
+        messages[i].content = (messages[i].content || '') + IMAGE_TEXT_ONLY_NOTE;
+        break;
+      }
+    }
+  }
 
   const modelsToTry = [PROVIDERS.openrouter.model, ...PROVIDERS.openrouter.fallbackModels];
   let lastErr;

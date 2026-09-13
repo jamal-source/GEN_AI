@@ -3014,3 +3014,125 @@ button, input, textarea, select {
 .dash-ob-actions .btn-primary-action { width: 100%; justify-content: center; }
 .dash-ob-close { position: absolute; top: -6px; right: -6px; width: 26px; height: 26px; border-radius: 50%; border: none; background: var(--bg-surface, #fff); color: var(--text-muted, #6b7280); font-size: 16px; line-height: 1; cursor: pointer; box-shadow: var(--shadow-sm, 0 1px 2px rgba(0,0,0,.08)); }
 .dash-ob-close:hover { color: var(--text-main, #111827); }
+/* ========= UPLOAD & LAMPIRAN (foto produk, lampiran chat) ========= */
+.composer-attach-chip {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 5px 8px;
+  margin-bottom: 6px;
+  max-width: 260px;
+}
+.composer-attach-chip img {
+  width: 34px;
+  height: 34px;
+  object-fit: cover;
+  border-radius: 6px;
+  border: 1px solid var(--border);
+}
+.composer-attach-name {
+  font-size: 12px;
+  color: var(--text-muted);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  flex: 1;
+}
+.composer-attach-remove {
+  background: none;
+  border: none;
+  color: var(--text-muted);
+  font-size: 18px;
+  line-height: 1;
+  cursor: pointer;
+  padding: 2px 6px;
+  border-radius: 6px;
+}
+.composer-attach-remove:hover { color: var(--danger, #dc2626); background: var(--surface-hover, rgba(0,0,0,.05)); }
+
+.chat-attach-img {
+  max-width: 220px;
+  max-height: 160px;
+  object-fit: cover;
+  border-radius: 10px;
+  border: 1px solid rgba(0,0,0,.12);
+  display: block;
+  margin-bottom: 6px;
+}
+.user-row .chat-attach-img { border-radius: 10px; }
+
+.product-photo-uploader {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin-bottom: 16px;
+}
+.product-photo-preview {
+  width: 92px;
+  height: 92px;
+  border: 1.5px dashed var(--border);
+  border-radius: 12px;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--surface);
+  flex-shrink: 0;
+}
+.product-photo-placeholder {
+  font-size: 11px;
+  color: var(--text-muted);
+  text-align: center;
+  padding: 4px;
+  line-height: 1.4;
+}
+.product-photo-preview img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.product-photo-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.btn-secondary-sm {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  color: var(--text-main);
+  border-radius: 8px;
+  padding: 7px 12px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background .15s, border-color .15s;
+  white-space: nowrap;
+}
+.btn-secondary-sm:hover { background: var(--surface-hover, rgba(0,0,0,.05)); border-color: var(--primary, #4f46e5); }
+
+.dash-active-info {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-width: 0;
+}
+.dash-product-photo {
+  width: 46px;
+  height: 46px;
+  flex-shrink: 0;
+  border-radius: 10px;
+  overflow: hidden;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  display: none;
+  align-items: center;
+  justify-content: center;
+}
+.dash-product-photo img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}

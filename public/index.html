@@ -14,7 +14,7 @@
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/atom-one-dark.min.css">
   <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js" defer></script>
   
-  <link rel="stylesheet" href="style.css?v=6.0"/>
+  <link rel="stylesheet" href="style.css?v=6.1"/>
   <style>
     /* BUG #11 FIX: Print only Brand Kit output section */
     @media print {
@@ -268,7 +268,8 @@
               <span>Produk Aktif</span>
             </div>
             <div class="dash-active-body">
-              <div>
+              <div class="dash-active-info">
+                <div class="dash-product-photo" id="dash-product-photo"></div>
                 <div class="dash-active-brand" id="dash-product-brand">KUSUMA FOOD</div>
                 <div class="dash-active-variant" id="dash-product-variant">Keripik Ubi Ungu 145g</div>
               </div>
@@ -399,6 +400,11 @@
         <div class="composer-container">
           <form id="chat-form" class="composer-card" action="javascript:void(0);">
             <div class="composer-input-row">
+              <div class="composer-attach-chip" id="composer-attach-chip" style="display:none;">
+                <img id="composer-attach-thumb" alt="Lampiran" />
+                <span class="composer-attach-name" id="composer-attach-name">Gambar</span>
+                <button type="button" class="composer-attach-remove" onclick="clearAttachment(); return false;" title="Hapus lampiran" aria-label="Hapus lampiran">&times;</button>
+              </div>
               <textarea
                 id="user-input"
                 placeholder="Tulis pesan... (Enter kirim · Shift+Enter baris baru)"
@@ -408,6 +414,10 @@
 
             <div class="composer-toolbar">
               <div class="toolbar-left">
+                <button type="button" class="tool-btn" id="chat-attach-btn" title="Lampirkan gambar (AI menganalisis isinya)" aria-label="Lampirkan gambar" onclick="document.getElementById('chat-attach-input').click(); return false;">
+                  <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"/></svg>
+                </button>
+                <input type="file" id="chat-attach-input" accept="image/*" style="display:none;" onchange="pickChatImage(this)" />
                 <button type="button" class="tool-btn" title="Kelola Produk Aktif" aria-label="Kelola produk aktif" onclick="openProductModal(); return false;">
                   <span>📦</span>
                 </button>
@@ -1452,6 +1462,18 @@
       <div class="modal-body">
         <p class="modal-help-text">Pilih atau tambahkan info produk UMKM Anda agar MitraKu AI memberikan hasil yang sangat spesifik dan faktual.</p>
 
+        <div class="product-photo-uploader">
+          <div class="product-photo-preview" id="product-photo-preview">
+            <span class="product-photo-placeholder" id="product-photo-placeholder">Foto produk</span>
+            <img id="product-photo-img" alt="Preview foto produk" style="display:none;" />
+          </div>
+          <div class="product-photo-actions">
+            <button type="button" class="btn-secondary-sm" onclick="document.getElementById('input-product-photo').click()">Unggah Foto Produk</button>
+            <button type="button" class="btn-secondary-sm" id="product-photo-remove" style="display:none;" onclick="clearProductPhoto()">Hapus Foto</button>
+            <input type="file" id="input-product-photo" accept="image/*" style="display:none;" onchange="pickProductPhoto(this)" />
+          </div>
+        </div>
+
         <div class="form-group">
           <label for="input-product-name">Nama Brand / Usaha</label>
           <input type="text" id="input-product-name" placeholder="Contoh: Ada Zamal, Dapur Bu Ani, Kopi Nusantara" />
@@ -1500,6 +1522,6 @@
     </div>
   </div>
 
-  <script src="script.js?v=6.0"></script>
+  <script src="script.js?v=6.1"></script>
 </body>
 </html>
