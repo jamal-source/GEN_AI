@@ -10,6 +10,7 @@
   const PRODUCT_KEY   = 'mitraku_active_product';
   const SIDEBAR_KEY   = 'mitraku_sidebar_open';
   const VIEW_KEY      = 'mitraku_active_view';
+  const KNOWN_VIEWS   = ['dashboard', 'chat', 'copywriting', 'brandkit', 'tokopintar', 'marketresearch', 'settings'];
 
   let activeConvId      = safeGet(ACTIVE_ID_KEY) || null;
   let selectedProvider  = 'gemini';
@@ -154,11 +155,24 @@
   }
 
   window.openAboutModal = function () {
-    openModal('about-modal');
+    if (typeof window.switchSettingsTab === 'function') window.switchSettingsTab('umum');
+    if (typeof window.switchView === 'function') window.switchView('settings');
   };
 
   window.closeAboutModal = function () {
     closeModal('about-modal');
+  };
+
+  window.switchSettingsTab = function (tab) {
+    const umum = $('settings-subview-umum');
+    const integ = $('settings-subview-integrasi');
+    const tU = $('settings-tab-umum');
+    const tI = $('settings-tab-integrasi');
+    if (umum) umum.style.display = (tab === 'umum') ? 'block' : 'none';
+    if (integ) integ.style.display = (tab === 'integrasi') ? 'block' : 'none';
+    if (tU) tU.classList.toggle('active', tab === 'umum');
+    if (tI) tI.classList.toggle('active', tab === 'integrasi');
+    if (tab === 'integrasi' && typeof initSettingsPanel === 'function') initSettingsPanel();
   };
 
   window.openClearHistoryModal = function () {
@@ -481,12 +495,11 @@ activeConvId = null;
     showEmpty();
   }
 
-  // BUG #12 FIX: Restore last active view from localStorage
+  // BUG #12 FIX: Restore last active view from localStorage (dashboard = default baru)
   const savedView = safeGet(VIEW_KEY);
-  if (savedView && savedView !== 'chat') {
-    // Defer to ensure DOM is ready for switchView
-    setTimeout(() => { if (typeof window.switchView === 'function') window.switchView(savedView); }, 0);
-  }
+  const initialView = (savedView && KNOWN_VIEWS.includes(savedView)) ? savedView : 'dashboard';
+  // Defer to ensure DOM is ready for switchView (juga hydrates dashboard)
+  setTimeout(() => { if (typeof window.switchView === 'function') window.switchView(initialView); }, 0);
 
   /* ── SIDEBAR TOGGLE & COLLAPSE ──────────────────────────────── */
   function initSidebar() {
@@ -1126,7 +1139,7 @@ activeConvId = null;
 
   /* ── VIEW SWITCHER (5 MODUL) ───────── */
   window.switchView = function (viewName) {
-    const views = ['chat', 'copywriting', 'brandkit', 'tokopintar', 'marketresearch', 'settings'];
+    const views = KNOWN_VIEWS;
     
     views.forEach(v => {
       let vEl = $(v + '-view');
@@ -1150,7 +1163,9 @@ activeConvId = null;
     // Modul Specific Initialization (Context Sync)
     const activeP = getActiveProductContext();
 
-    if (viewName === 'copywriting') {
+    if (viewName === 'dashboard') {
+      renderDashboard();
+    } else if (viewName === 'copywriting') {
       const nameInput = $('cw-product-name');
       if (nameInput && !nameInput.value.trim()) {
         nameInput.value = activeP.variant || activeP.brand || '';
@@ -1173,6 +1188,7 @@ activeConvId = null;
       prefillTpProductForm();
       renderTpQuickPrompts();
       initTokoPintarLinks();
+      syncTokoNavTabs();
     } else if (viewName === 'settings') {
       if (typeof initSettingsPanel === 'function') {
         initSettingsPanel();
@@ -1185,6 +1201,88 @@ activeConvId = null;
     // BUG #12 FIX: Persist active view to localStorage
     safeSet(VIEW_KEY, viewName);
   };
+
+  /* ── DASHBOARD (COMMAND CENTER) ──────────────────────────────── */
+  function dashRelTime(iso) {
+    if (!iso) return '';
+    const t = new Date(iso).getTime();
+    if (isNaN(t)) return '';
+    const s = Math.floor((Date.now() - t) / 1000);
+    if (s < 60) return 'baru saja';
+    const m = Math.floor(s / 60);
+    if (m < 60) return `${m} menit lalu`;
+    const h = Math.floor(m / 60);
+    if (h < 24) return `${h} jam lalu`;
+    const d = Math.floor(h / 24);
+    if (d < 7) return `${d} hari lalu`;
+    return new Date(iso).toLocaleDateString('id-ID', { day: 'numeric', month: 'short' });
+  }
+
+  function dashMessageIcon(msg) {
+    if (!msg || msg.role === 'user') return 'chat';
+    const t = String((msg.metadata && (msg.metadata.type || msg.metadata.source)) || '').toLowerCase();
+    if (t.includes('brand')) return 'palette';
+    if (t.includes('research') || t.includes('riset')) return 'chart';
+    if (t.includes('copy')) return 'pen';
+    return 'bot';
+  }
+
+  function renderActivityList(el) {
+    if (!el) return;
+    const recent = svc.getAll().slice(0, 4);
+    if (!recent.length) {
+      el.innerHTML = '<p class="dash-empty">Belum ada aktivitas. Mulai dengan membuat konten pertamamu.</p>';
+      return;
+    }
+    el.innerHTML = recent.map(c => {
+      const last = (c.messages && c.messages.length) ? c.messages[c.messages.length - 1] : null;
+      const isUser = last && last.role === 'user';
+      const preview = (last && (last.text || '').trim()) || '';
+      const ic = dashMessageIcon(last);
+      return `
+        <button type="button" class="dash-activity-item" onclick="window.openConversationFromDashboard('${escHtml(String(c.id))}')">
+          <span class="dash-activity-icon ic-${ic}">
+            <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><use href="#ic-${ic}"></use></svg>
+          </span>
+          <span class="dash-activity-txt">
+            <span class="dash-activity-title">${escHtml(c.title)}</span>
+            <span class="dash-activity-preview">${isUser ? 'Kamu: ' : ''}${escHtml(preview).slice(0, 90)}</span>
+          </span>
+          <span class="dash-activity-time">${dashRelTime(c.updated_at)}</span>
+        </button>`;
+    }).join('');
+  }
+
+  function renderDashboard() {
+    const p = getActiveProductContext();
+    const brandEl   = $('dash-product-brand');
+    const variantEl = $('dash-product-variant');
+    if (brandEl) {
+      brandEl.textContent = (p.brand || p.variant || '').toUpperCase() || 'PRODUK UMUM';
+    }
+    if (variantEl) {
+      variantEl.textContent = p.variant
+        ? `${p.variant}${p.brand ? ' — ' + p.brand : ''}`
+        : (p.brand ? 'Tanpa varian khusus' : 'Belum ada produk aktif — semua tool memakai konteks umum.');
+    }
+    renderActivityList($('dash-activity-list'));
+  }
+
+  window.openConversationFromDashboard = function (id) {
+    loadConversation(id);
+    if (typeof window.switchView === 'function') window.switchView('chat');
+  };
+
+  /* Highlight sidebar Toko sesuai subtab aktif (Produk&Katalog vs AI Customer Service) */
+  function syncTokoNavTabs() {
+    const subCatalog = $('tp-subview-catalog');
+    const tTok = $('tab-tokopintar');
+    const tCs  = $('tab-cs');
+    if (!subCatalog || !tTok) return;
+    const isCatalog = subCatalog.style.display !== 'none';
+    tTok.classList.toggle('active', !!isCatalog);
+    if (tCs) tCs.classList.toggle('active', !isCatalog);
+  }
 
   /* ── TOKO PINTAR: IDENTITAS TOKO, SHARE LINK & EMBED CODE ──── */
   const TP_STORE_ID_KEY   = 'mitraku_store_id';
@@ -1799,6 +1897,30 @@ try {
     return (s || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');
   }
 
+  window.copySectionedReport = async function (containerId, btnEl) {
+    const container = $(containerId);
+    if (!container) return;
+    const cards = container.querySelectorAll('.cw-card');
+    if (!cards.length) { showToast('Belum ada hasil untuk disalin.'); return; }
+    const parts = [];
+    cards.forEach(card => {
+      const title = card.querySelector('.cw-card-title');
+      const body  = card.querySelector('.cw-card-body');
+      let bodyText = body ? body.innerText.replace(/[ \t]+/g, ' ').trim() : '';
+      bodyText = bodyText.replace(/\n{3,}/g, '\n\n');
+      parts.push(`=== ${title ? title.textContent.trim() : 'Hasil'} ===\n${bodyText}`);
+    });
+    const full = parts.join('\n\n------------------------------\n\n');
+    copyToClipboard(full).then(() => {
+      if (btnEl) {
+        const orig = btnEl.textContent;
+        btnEl.textContent = '✓ Tersalin!';
+        setTimeout(() => { btnEl.textContent = orig; }, 2000);
+      }
+      showToast('✓ Laporan tersalin!');
+    });
+  };
+
   function fmt(d) {
     if (!d || isNaN(d.getTime())) {
       d = new Date();
@@ -2083,6 +2205,7 @@ try {
       if (subCatalog) subCatalog.style.display = 'grid';
       if (tabCat)     tabCat.classList.add('active');
     }
+    syncTokoNavTabs();
   };
 
   async function loadStoreCatalog() {
@@ -2110,6 +2233,8 @@ try {
 
       if (ok && data.success && Array.isArray(data.catalog)) {
         if (countEl) countEl.textContent = data.catalog.length;
+        const csKnow = $('tp-cs-knowledge-count');
+        if (csKnow) csKnow.textContent = data.catalog.length;
         window.__tpCatalog = data.catalog;
         renderCatalogList(data.catalog);
       }

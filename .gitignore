@@ -16,11 +16,12 @@ todo.md
 .agents/
 .bob/
 skills-lock.json
-# File data runtime yang bisa berisi secret / data pengguna — tidak boleh masuk git
+# File data runtime yang bisa berisi secret / data pengguna - tidak boleh masuk git
 data/langflow-config.json
 data/catalogs.json
 
-
-
 .vercel
 .env*
+
+# QA scripts lokal (Puppeteer, dijalankan manual) - jangan masuk git
+.qa_p*.cjs

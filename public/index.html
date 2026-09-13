@@ -14,7 +14,7 @@
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/atom-one-dark.min.css">
   <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js" defer></script>
   
-  <link rel="stylesheet" href="style.css?v=5.3"/>
+  <link rel="stylesheet" href="style.css?v=6.0"/>
   <style>
     /* BUG #11 FIX: Print only Brand Kit output section */
     @media print {
@@ -30,6 +30,22 @@
   </style>
 </head>
 <body>
+  <!-- SVG icon sprite (konsisten, single source) -->
+  <svg xmlns="http://www.w3.org/2000/svg" style="display:none;" aria-hidden="true">
+    <defs>
+      <symbol id="ic-dashboard" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7" rx="1.5"></rect><rect x="14" y="3" width="7" height="7" rx="1.5"></rect><rect x="3" y="14" width="7" height="7" rx="1.5"></rect><rect x="14" y="14" width="7" height="7" rx="1.5"></rect></symbol>
+      <symbol id="ic-chat" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"></path></symbol>
+      <symbol id="ic-pen" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 3a2.83 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z"></path></symbol>
+      <symbol id="ic-palette" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2C6.5 2 2 6.5 2 12s4.5 10 10 10c.93 0 1.65-.75 1.65-1.69 0-.44-.18-.84-.44-1.13-.29-.29-.44-.65-.44-1.12a1.64 1.64 0 0 1 1.67-1.67h2c3.05 0 5.56-2.5 5.56-5.55C21.97 6.01 17.46 2 12 2z"></path><circle cx="7.5" cy="10.5" r="1"></circle><circle cx="12" cy="7.5" r="1"></circle><circle cx="16.5" cy="10.5" r="1"></circle></symbol>
+      <symbol id="ic-chart" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="20" x2="18" y2="10"></line><line x1="12" y1="20" x2="12" y2="4"></line><line x1="6" y1="20" x2="6" y2="14"></line></symbol>
+      <symbol id="ic-box" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path><polyline points="3.27 6.96 12 12.01 20.73 6.96"></polyline><line x1="12" y1="22.08" x2="12" y2="12"></line></symbol>
+      <symbol id="ic-bot" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="8" width="16" height="12" rx="2"></rect><path d="M12 8V4"></path><circle cx="12" cy="3" r="1"></circle><circle cx="8.5" cy="14" r="1"></circle><circle cx="15.5" cy="14" r="1"></circle></symbol>
+      <symbol id="ic-gear" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"></path></symbol>
+      <symbol id="ic-box-open" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 8v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8"></path><polyline points="3 8 3 3 21 3 21 8"></polyline><line x1="8" y1="14" x2="8" y2="12"></line><line x1="16" y1="14" x2="16" y2="12"></line><path d="M3 3l4.5 2.5"></path><path d="M21 3l-4.5 2.5"></path></symbol>
+    <symbol id="ic-shield" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path><path d="M9 12l2 2 4-4"></path></symbol>
+      <symbol id="ic-launch" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 2L11 13"></path><path d="M22 2l-7 20-4-9-9-4 20-7z"></path></symbol>
+    </defs>
+  </svg>
 
   <div class="app-layout">
     
@@ -67,41 +83,49 @@
       <nav class="sidebar-nav" aria-label="Navigasi utama">
         <div class="sidebar-nav-group">
           <div class="sidebar-nav-title">Dashboard</div>
-          <button type="button" class="view-tab-btn active" id="tab-chat" onclick="switchView('chat')">
-            <span class="tab-icon">💬</span>
-            <span class="tab-label">Chat AI</span>
+          <button type="button" class="view-tab-btn active" id="tab-dashboard" onclick="switchView('dashboard')">
+            <span class="tab-icon"><svg class="nav-svg" viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><use href="#ic-dashboard"></use></svg></span>
+            <span class="tab-label">Dashboard</span>
           </button>
         </div>
 
         <div class="sidebar-nav-group">
           <div class="sidebar-nav-title">AI Tools</div>
+          <button type="button" class="view-tab-btn" id="tab-chat" onclick="switchView('chat')">
+            <span class="tab-icon"><svg class="nav-svg" viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><use href="#ic-chat"></use></svg></span>
+            <span class="tab-label">Mitra Chat</span>
+          </button>
           <button type="button" class="view-tab-btn" id="tab-copywriting" onclick="switchView('copywriting')">
-            <span class="tab-icon">✍️</span>
-            <span class="tab-label">Copywriting Factory</span>
+            <span class="tab-icon"><svg class="nav-svg" viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><use href="#ic-pen"></use></svg></span>
+            <span class="tab-label">Copywriting</span>
           </button>
           <button type="button" class="view-tab-btn" id="tab-brandkit" onclick="switchView('brandkit')">
-            <span class="tab-icon">🎨</span>
+            <span class="tab-icon"><svg class="nav-svg" viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><use href="#ic-palette"></use></svg></span>
             <span class="tab-label">Brand Kit</span>
           </button>
           <button type="button" class="view-tab-btn" id="tab-marketresearch" onclick="switchView('marketresearch')">
-            <span class="tab-icon">📊</span>
+            <span class="tab-icon"><svg class="nav-svg" viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><use href="#ic-chart"></use></svg></span>
             <span class="tab-label">Riset Pasar</span>
           </button>
         </div>
 
         <div class="sidebar-nav-group">
           <div class="sidebar-nav-title">Toko</div>
-          <button type="button" class="view-tab-btn" id="tab-tokopintar" onclick="switchView('tokopintar')">
-            <span class="tab-icon">🏪</span>
-            <span class="tab-label">Toko Pintar</span>
+          <button type="button" class="view-tab-btn" id="tab-tokopintar" onclick="switchView('tokopintar'); switchTpSubView('catalog'); return false;">
+            <span class="tab-icon"><svg class="nav-svg" viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><use href="#ic-box"></use></svg></span>
+            <span class="tab-label">Produk &amp; Katalog</span>
+          </button>
+          <button type="button" class="view-tab-btn" id="tab-cs" onclick="switchView('tokopintar'); switchTpSubView('chat'); return false;">
+            <span class="tab-icon"><svg class="nav-svg" viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><use href="#ic-bot"></use></svg></span>
+            <span class="tab-label">AI Customer Service</span>
           </button>
         </div>
 
         <div class="sidebar-nav-group">
-          <div class="sidebar-nav-title">Pengaturan</div>
+          <div class="sidebar-nav-title">Settings</div>
           <button type="button" class="view-tab-btn" id="tab-settings" onclick="switchView('settings')">
-            <span class="tab-icon">⚙️</span>
-            <span class="tab-label">Pengaturan</span>
+            <span class="tab-icon"><svg class="nav-svg" viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><use href="#ic-gear"></use></svg></span>
+            <span class="tab-label">Settings</span>
           </button>
         </div>
       </nav>
@@ -162,7 +186,7 @@
           
           <!-- Product Context Selector -->
           <button type="button" class="product-selector-pill" onclick="openProductModal()" title="Klik untuk ganti produk aktif" aria-label="Ganti produk aktif">
-            <span class="pill-icon">📦</span>
+            <span class="pill-icon"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><use href="#ic-box-open"></use></svg></span>
             <span class="pill-label" id="top-product-name">Produk: Umum</span>
             <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 12 15 18 9"></polyline></svg>
           </button>
@@ -213,9 +237,60 @@
           </button>
         </div>
       </header>
+      <!-- VIEW 0: DASHBOARD (command center) -->
+      <div id="dashboard-view" class="view-container active">
+        <div class="dash-wrap">
+          <header class="dash-hero">
+            <h1>Selamat datang di MitraKu AI</h1>
+            <p>Apa yang ingin kamu kerjakan hari ini?</p>
+          </header>
+
+          <section class="dash-active" aria-label="Produk aktif">
+            <div class="dash-active-label">
+              <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><use href="#ic-box"></use></svg>
+              <span>Produk Aktif</span>
+            </div>
+            <div class="dash-active-body">
+              <div>
+                <div class="dash-active-brand" id="dash-product-brand">KUSUMA FOOD</div>
+                <div class="dash-active-variant" id="dash-product-variant">Keripik Ubi Ungu 145g</div>
+              </div>
+              <button type="button" class="btn-secondary-sm" onclick="openProductModal()">Ganti Produk</button>
+            </div>
+          </section>
+
+          <section class="dash-cards" aria-label="Aksi cepat">
+            <button type="button" class="dash-card" onclick="switchView('copywriting')">
+              <span class="dash-card-icon ic-pen"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><use href="#ic-pen"></use></svg></span>
+              <span class="dash-card-title">Buat Konten</span>
+              <span class="dash-card-desc">Caption, script &amp; copywriting untuk jualan</span>
+            </button>
+            <button type="button" class="dash-card" onclick="switchView('brandkit')">
+              <span class="dash-card-icon ic-palette"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><use href="#ic-palette"></use></svg></span>
+              <span class="dash-card-title">Bangun Brand</span>
+              <span class="dash-card-desc">Identitas brand, warna &amp; cerita bisnis</span>
+            </button>
+            <button type="button" class="dash-card" onclick="switchView('marketresearch')">
+              <span class="dash-card-icon ic-chart"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><use href="#ic-chart"></use></svg></span>
+              <span class="dash-card-title">Riset Pasar</span>
+              <span class="dash-card-desc">Cari insight harga &amp; strategi kompetitor</span>
+            </button>
+            <button type="button" class="dash-card" onclick="switchView('tokopintar'); switchTpSubView('chat'); return false;">
+              <span class="dash-card-icon ic-bot"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><use href="#ic-bot"></use></svg></span>
+              <span class="dash-card-title">AI Customer Service</span>
+              <span class="dash-card-desc">Layani pelanggan dengan AI tokomu</span>
+            </button>
+          </section>
+
+          <section class="dash-activity" aria-label="Aktivitas terakhir">
+            <h2 class="dash-section-title">Aktivitas Terakhir</h2>
+            <div id="dash-activity-list"><p class="dash-empty">Belum ada aktivitas. Mulai dengan membuat konten pertamamu.</p></div>
+          </section>
+        </div>
+      </div>
 
       <!-- VIEW 1: CHAT AI VIEW -->
-      <div id="chat-view" class="view-container active">
+      <div id="chat-view" class="view-container" style="display:none;">
         <!-- CHAT MESSAGES AREA -->
         <main id="chat-box" class="chat-box" role="log" aria-live="polite" aria-relevant="additions" aria-label="Riwayat chat">
           
@@ -235,35 +310,42 @@
 
             <div class="suggestion-grid">
               <button type="button" class="sug-card" onclick="switchView('copywriting'); return false;">
-                <div class="sug-icon">✍️</div>
+                <div class="sug-icon ic-pen"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><use href="#ic-pen"></use></svg></div>
                 <div class="sug-text">
-                  <div class="sug-title">Copywriting Factory</div>
-                  <div class="sug-desc">Generate copy Shopee, TikTok, &amp; IG instan</div>
+                  <div class="sug-title">Copywriting</div>
+                  <div class="sug-desc">Copy Shopee, TikTok &amp; IG instan</div>
+                </div>
+              </button>
+              <button type="button" class="sug-card" onclick="switchView('brandkit'); return false;">
+                <div class="sug-icon ic-palette"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><use href="#ic-palette"></use></svg></div>
+                <div class="sug-text">
+                  <div class="sug-title">Brand Kit</div>
+                  <div class="sug-desc">Identitas brand, warna &amp; cerita bisnis</div>
+                </div>
+              </button>
+              <button type="button" class="sug-card" onclick="switchView('marketresearch'); return false;">
+                <div class="sug-icon ic-chart"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><use href="#ic-chart"></use></svg></div>
+                <div class="sug-text">
+                  <div class="sug-title">Riset Pasar</div>
+                  <div class="sug-desc">Insight harga &amp; strategi kompetitor</div>
+                </div>
+              </button>
+              <button type="button" class="sug-card" onclick="switchView('tokopintar'); switchTpSubView('chat'); return false;">
+                <div class="sug-icon ic-bot"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><use href="#ic-bot"></use></svg></div>
+                <div class="sug-text">
+                  <div class="sug-title">AI Customer Service</div>
+                  <div class="sug-desc">Layani pelanggan tokomu 24/7</div>
                 </div>
               </button>
               <button type="button" class="sug-card" onclick="quickPrompt('Buat deskripsi jualan Shopee &amp; TikTok Shop yang menarik pembeli'); return false;">
-                <div class="sug-icon">🛒</div>
+                <div class="sug-icon ic-box"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><use href="#ic-box"></use></svg></div>
                 <div class="sug-text">
                   <div class="sug-title">Deskripsi Shopee SEO</div>
                   <div class="sug-desc">Copywriting persuasif &amp; kata kunci populer</div>
                 </div>
               </button>
-              <button type="button" class="sug-card" onclick="quickPrompt('Buat ide konsep video promosi 15 detik untuk TikTok'); return false;">
-                <div class="sug-icon">🎬</div>
-                <div class="sug-text">
-                  <div class="sug-title">Skrip Konten TikTok</div>
-                  <div class="sug-desc">Hook, alur video, &amp; ide sound viral</div>
-                </div>
-              </button>
-              <button type="button" class="sug-card" onclick="quickPrompt('Bantu analisis keunggulan &amp; potensi pasar produk UMKM saya'); return false;">
-                <div class="sug-icon">📊</div>
-                <div class="sug-text">
-                  <div class="sug-title">Analisis Produk UMKM</div>
-                  <div class="sug-desc">Evaluasi nilai jual &amp; strategi branding</div>
-                </div>
-              </button>
               <button type="button" class="sug-card" onclick="quickPrompt('Info syarat legalitas NIB, SPP-IRT, dan Sertifikat Halal UMKM'); return false;">
-                <div class="sug-icon">⚖️</div>
+                <div class="sug-icon ic-shield"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><use href="#ic-shield"></use></svg></div>
                 <div class="sug-text">
                   <div class="sug-title">Legalitas UMKM</div>
                   <div class="sug-desc">Info NIB, SPP-IRT &amp; sertifikat halal</div>
@@ -274,21 +356,21 @@
             <!-- Onboarding Tip Card for New Users -->
             <div class="onboarding-tip-card" id="onboarding-card">
               <div class="tip-header">
-                <span class="tip-badge">💡 Panduan Cepat MitraKu AI</span>
+                <span class="tip-badge">Panduan Cepat MitraKu AI</span>
                 <button type="button" class="tip-close-btn" onclick="dismissOnboarding(); return false;" title="Sembunyikan panduan">&times;</button>
               </div>
               <div class="tip-steps">
                 <div class="tip-step">
                   <span class="step-num">1</span>
-                  <span>Klik <strong>📦 Produk Aktif</strong> di sidebar untuk mengisi brand &amp; varian usaha Anda.</span>
+                  <span>Atur <strong>Produk Aktif</strong> di top bar atau Dashboard agar semua fitur otomatis terisi.</span>
                 </div>
                 <div class="tip-step">
                   <span class="step-num">2</span>
-                  <span>Gunakan <strong>✍️ Copywriting Factory</strong> untuk buat deskripsi Shopee &amp; TikTok instan.</span>
+                  <span>Gunakan <strong>Copywriting</strong> untuk buat deskripsi Shopee &amp; TikTok instan.</span>
                 </div>
                 <div class="tip-step">
                   <span class="step-num">3</span>
-                  <span>Tanyakan strategi promosi, analisis pasar &amp; legalitas usaha langsung di <strong>Chat AI</strong>!</span>
+                  <span>Tanyakan strategi promosi, analisis pasar &amp; legalitas usaha langsung di <strong>Mitra Chat</strong>!</span>
                 </div>
               </div>
             </div>
@@ -673,6 +755,9 @@
                     <button type="button" id="bk-regen-btn" class="btn-secondary-action btn-sm" title="Buat ulang brand kit">
                       ↻ Buat Ulang
                     </button>
+                    <button type="button" class="btn-secondary-action btn-sm" onclick="copySectionedReport('bk-cards-container', this)">
+                      Salin Laporan
+                    </button>
                     <button type="button" id="bk-download-png-btn" class="btn-primary-action btn-sm" onclick="downloadBrandKitPNG()">
                       ⬇ Download Visual PNG
                     </button>
@@ -729,13 +814,17 @@
           <!-- Toko Pintar Sub Navigation Pills -->
           <div class="tp-subnav">
             <button type="button" class="tp-subnav-btn active" id="tp-tab-catalog" onclick="switchTpSubView('catalog')">
-              📦 Kelola Katalog Toko (<span id="tp-catalog-count">3</span>)
+              <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><use href="#ic-box"></use></svg>
+              <span>Produk &amp; Katalog</span>
+              <span class="tp-count-pill" id="tp-catalog-count">3</span>
             </button>
             <button type="button" class="tp-subnav-btn" id="tp-tab-chat" onclick="switchTpSubView('chat')">
-              💬 Simulasi Chat CS Toko
+              <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><use href="#ic-bot"></use></svg>
+              <span>AI Customer Service</span>
             </button>
             <button type="button" class="tp-subnav-btn" id="tp-tab-embed" onclick="switchTpSubView('embed')">
-              🔗 Link &amp; Embed Widget CS
+              <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><use href="#ic-launch"></use></svg>
+              <span>Integrasi &amp; Embed</span>
             </button>
           </div>
 
@@ -840,6 +929,31 @@
 
           <!-- SUBVIEW 2: SIMULASI CHATBOT CS TOKO -->
           <div id="tp-subview-chat" class="tp-chat-simulation-panel" style="display: none;">
+
+            <div class="tp-cs-status-strip" aria-label="Status AI CS">
+              <div class="tp-cs-stat">
+                <span class="status-dot status-dot-green" style="width:8px;height:8px;"></span>
+                <div>
+                  <div class="tp-cs-stat-label">Status</div>
+                  <div class="tp-cs-stat-value">AI CS Online 24/7</div>
+                </div>
+              </div>
+              <div class="tp-cs-stat">
+                <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><use href="#ic-box"></use></svg>
+                <div>
+                  <div class="tp-cs-stat-label">Pengetahuan (Knowledge)</div>
+                  <div class="tp-cs-stat-value"><span id="tp-cs-knowledge-count">0</span> produk di katalog</div>
+                </div>
+              </div>
+              <div class="tp-cs-stat tp-cs-pub-stat">
+                <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><use href="#ic-launch"></use></svg>
+                <div>
+                  <div class="tp-cs-stat-label">Publikasi</div>
+                  <div class="tp-cs-stat-value" id="tp-cs-pub-hint">Salin link / embed widget</div>
+                </div>
+              </div>
+            </div>
+
             <div class="tp-chat-header">
               <div style="display: flex; align-items: center; justify-content: space-between; gap: 10px; width: 100%;">
                 <div class="tp-chat-title" style="min-width: 0;">
@@ -874,6 +988,17 @@
               <input type="text" id="tp-cs-input" class="cw-input" placeholder="Tulis pertanyaan pelanggan... (contoh: Stok rasa coklat masih ada?)" autocomplete="off" />
               <button type="submit" id="tp-cs-send-btn" class="btn-primary-action" style="padding: 10px 20px; white-space: nowrap;">Kirim CS</button>
             </form>
+
+            <div class="tp-cs-publish-bar">
+              <button type="button" class="btn-secondary-action btn-sm" onclick="copyTpShareLink(this)">
+                <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><use href="#ic-launch"></use></svg>
+                Salin Link CS
+              </button>
+              <button type="button" class="btn-secondary-action btn-sm" onclick="switchTpSubView('embed')">
+                Kode Embed Widget
+              </button>
+              <span class="tp-cs-pub-note">Bagikan link &amp; widget ke pelanggan agar CS AI juga melayani di luar aplikasi.</span>
+            </div>
           </div>
 
           <!-- SUBVIEW 3: LINK & EMBED WIDGET CS -->
@@ -1029,6 +1154,9 @@
                   <button type="button" id="mr-regen-btn" class="btn-secondary-action btn-sm" title="Buat ulang riset pasar">
                     ↻ Buat Ulang
                   </button>
+                  <button type="button" class="btn-secondary-action btn-sm" onclick="copySectionedReport('mr-cards-container', this)">
+                    Salin Laporan
+                  </button>
                 </div>
 
                 <div id="mr-cards-container" class="cw-cards-container">
@@ -1045,8 +1173,94 @@
       <!-- VIEW 6: INTEGRASI SETTINGS VIEW -->
       <div id="settings-view" class="view-container" style="display:none;">
         <div class="copywriting-wrapper">
+<div class="settings-subnav" role="tablist" aria-label="Bagian Pengaturan">
+            <button type="button" class="settings-subnav-btn active" id="settings-tab-integrasi" onclick="switchSettingsTab('integrasi')">Integrasi AI</button>
+            <button type="button" class="settings-subnav-btn" id="settings-tab-umum" onclick="switchSettingsTab('umum')">Tentang</button>
+          </div>
+          <!-- SUBVIEW UMUM: Tentang & Profil -->
+          <div id="settings-subview-umum" style="display:none;">
 
-          <!-- Banner -->
+            <div class="cw-header-banner cw-banner-risetpasar">
+              <div class="banner-deco" aria-hidden="true">
+                <div class="deco-blob deco-blob-1"></div>
+                <div class="deco-blob deco-blob-2"></div>
+              </div>
+              <div class="banner-content">
+                <div class="banner-top-row">
+                  <div class="cw-header-badge" style="background:rgba(16,185,129,0.15);border-color:rgba(16,185,129,0.3);color:#10b981;">TENTANG MITRAKU AI</div>
+                  <span class="banner-ai-pill">AI Marketing Suite v3.0</span>
+                </div>
+                <h1 class="cw-header-title">Tentang MitraKu AI</h1>
+                <p class="cw-header-sub">MitraKu AI adalah AI Marketing Suite lengkap untuk UMKM Indonesia — copywriting Shopee/TikTok/Instagram, brand kit, riset pasar instan, dan customer service AI 24/7 berbasis pengetahuan produk toko.</p>
+              </div>
+            </div>
+
+            <div class="settings-umum-grid">
+              <div class="settings-card mfc-card-indigo">
+                <div class="mfc-top-bar"></div>
+                <div class="settings-card-header">
+                  <div class="settings-card-icon">👤</div>
+                  <div>
+                    <div class="settings-card-title">Pembuat Aplikasi</div>
+                    <div class="settings-card-desc">Identitas pengembang &amp; latar proyek</div>
+                  </div>
+                </div>
+                <div class="developer-profile" style="margin:14px 0 0;">
+                  <div class="dev-avatar">👨‍💻</div>
+                  <div class="dev-info">
+                    <h2 class="dev-name">Jamaludin</h2>
+                    <p class="dev-role">Mahasiswa S1 Ilmu Komputer</p>
+                    <p class="dev-univ">🎓 <strong>Universitas Putra Bangsa Kebumen</strong></p>
+                  </div>
+                </div>
+                <div class="dev-badge-box" style="margin-top:6px;">
+                  <div class="dev-badge">🚀 Program AI Productivity &amp; AI API Integration for Developers</div>
+                  <div class="dev-badge">🇮🇩 Hacktiv8 — Final Project Sesi 3 · IBM Skillsbuild University Education | Hackathon Nasional Batch 1</div>
+                </div>
+              </div>
+
+              <div class="settings-card mfc-card-purple">
+                <div class="mfc-top-bar"></div>
+                <div class="settings-card-header">
+                  <div class="settings-card-icon">🛠️</div>
+                  <div>
+                    <div class="settings-card-title">Tech Stack &amp; Model AI</div>
+                    <div class="settings-card-desc">Teknologi yang menggerakkan seluruh fitur</div>
+                  </div>
+                </div>
+                <div class="stack-tags" style="margin-top:12px;">
+                  <span class="stag">Google Gemini 2.5 Flash</span>
+                  <span class="stag">Groq GPT-OSS 120B</span>
+                  <span class="stag">OpenRouter AI</span>
+                  <span class="stag">Node.js Express v5</span>
+                  <span class="stag">Pengetahuan AI (Langflow)</span>
+                  <span class="stag">PostgreSQL</span>
+                </div>
+                <p class="settings-hint" style="margin-top:12px;">Setiap permintaan otomatis fallback antar model bila satu penyedia sedang sibuk.</p>
+              </div>
+
+              <div class="settings-card mfc-card-green">
+                <div class="mfc-top-bar"></div>
+                <div class="settings-card-header">
+                  <div class="settings-card-icon">⚙️</div>
+                  <div>
+                    <div class="settings-card-title">Pengaturan Perangkat</div>
+                    <div class="settings-card-desc">Produk aktif &amp; riwayat data lokal</div>
+                  </div>
+                </div>
+                <div style="display:flex; flex-wrap:wrap; gap:8px; margin-top:12px;">
+                  <button type="button" class="btn-secondary-action btn-sm" onclick="openProductModal()">Ganti Produk Aktif</button>
+                  <button type="button" class="btn-danger btn-sm" onclick="openClearHistoryModal()">Bersihkan Riwayat</button>
+                </div>
+                <p class="settings-hint" style="margin-top:12px;">Mode gelap / terang bisa diubah dari tombol 🌙 di kanan atas. Nilai produk aktif dipakai oleh semua tool &amp; dashboard.</p>
+              </div>
+            </div>
+
+          </div>
+
+          <!-- SUBVIEW INTEGRASI: AI (Advanced Config) -->
+          <div id="settings-subview-integrasi">
+			<!-- Banner -->
           <div class="cw-header-banner cw-banner-risetpasar">
             <div class="banner-deco" aria-hidden="true">
               <div class="deco-blob deco-blob-1"></div>
@@ -1188,7 +1402,8 @@
           </div><!-- /.cw-result-panel -->
 
         </div><!-- /.cw-main-grid -->
-      </div><!-- /#settings-view -->
+            </div><!-- /.settings-subview-integrasi -->
+</div><!-- /#settings-view -->
 
     <!-- Overlay for mobile sidebar -->
     <div id="sidebar-overlay" class="sidebar-overlay"></div>
@@ -1242,52 +1457,6 @@
     </div>
   </div>
 
-  <!-- MODAL: Profil Pembuat / About Developer -->
-  <div id="about-modal" class="modal-overlay" role="dialog" aria-modal="true" aria-labelledby="about-modal-title" style="display:none;" onclick="closeAboutModal()">
-    <div class="modal-card modal-about-card" onclick="event.stopPropagation()">
-      <div class="modal-header">
-        <h3 id="about-modal-title">👨‍💻 Profil Pembuat Aplikasi</h3>
-        <button type="button" class="modal-close-btn" onclick="closeAboutModal(); return false;">&times;</button>
-      </div>
-      <div class="modal-body">
-        <div class="developer-profile">
-          <div class="dev-avatar">👨‍💻</div>
-          <div class="dev-info">
-            <h2 class="dev-name">Jamaludin</h2>
-            <p class="dev-role">Mahasiswa S1 Ilmu Komputer</p>
-            <p class="dev-univ">🎓 <strong>Universitas Putra Bangsa Kebumen</strong></p>
-          </div>
-        </div>
-
-        <div class="dev-badge-box">
-          <div class="dev-badge">🚀 Program AI Productivity & AI API Integration for Developers</div>
-          <div class="dev-badge">🇮🇩 Hacktiv8 — Final Project Sesi 3 · IBM Skillsbuild University Education | Hackathon Nasional - 1 Sept (Batch 1)</div>
-        </div>
-
-        <div class="dev-desc-box">
-          <h4>💡 Tentang MitraKu AI</h4>
-          <p>MitraKu AI adalah <strong>AI Marketing Suite</strong> lengkap untuk UMKM Indonesia — membantu pemilik usaha kecil menghasilkan copywriting Shopee/TikTok/Instagram, brand kit lengkap, riset pasar instan, dan customer service AI 24/7 otomatis berbasis Pengetahuan AI.</p>
-        </div>
-
-        <div class="dev-stack-box">
-          <h4>🛠️ Tech Stack &amp; Model AI</h4>
-          <div class="stack-tags">
-            <span class="stag">Google Gemini 2.5 Flash</span>
-            <span class="stag">Groq GPT-OSS 120B</span>
-            <span class="stag">Node.js Express v5</span>
-            <span class="stag">Puppeteer PNG Export</span>
-            <span class="stag">Pengetahuan AI (Langflow)</span>
-            <span class="stag">PostgreSQL</span>
-          </div>
-        </div>
-      </div>
-      <div class="modal-footer" style="justify-content: space-between;">
-        <button type="button" class="btn-danger" onclick="openClearHistoryModal(); return false;">🗑️ Bersihkan Riwayat</button>
-        <button type="button" class="btn-primary-action" onclick="closeAboutModal(); return false;">Tutup Profil</button>
-      </div>
-    </div>
-  </div>
-
   <!-- MODAL: Confirm Clear History -->
   <div id="confirm-clear-modal" class="modal-overlay" role="dialog" aria-modal="true" aria-labelledby="confirm-clear-title" style="display:none;" onclick="closeClearHistoryModal()">
     <div class="modal-card modal-confirm-card" onclick="event.stopPropagation()">
@@ -1314,6 +1483,6 @@
     </div>
   </div>
 
-  <script src="script.js?v=5.3"></script>
+  <script src="script.js?v=6.0"></script>
 </body>
 </html>
