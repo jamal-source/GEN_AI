@@ -2,7 +2,7 @@
 
 > **Dokumen ini adalah satu-satunya sumber kebenaran (Single Source of Truth) untuk proyek ini.**
 > Setiap AI Agent, developer, atau kolaborator WAJIB membaca dokumen ini sebelum menyentuh kode apapun.
-> Terakhir diperbarui: 12 September 2026
+> Terakhir diperbarui: 13 September 2026
 
 ---
 
@@ -91,9 +91,11 @@ UMKM Indonesia (khususnya skala kecil) menghadapi:
 4. Chatbot menjawab dari vector search AstraDB (RAG) — bila Langflow tidak tersedia, otomatis fallback ke Gemini/Groq dengan konteks katalog penuh
 5. Tersedia sebagai widget embed di website atau link shareable
 
-**Konfigurasi:** Tab **⚙️ Integrasi** di sidebar → isi URL Langflow, Flow ID, dan kredensial AstraDB. Config tersimpan di `data/langflow-config.json` (bertahan saat server restart).
+**Konfigurasi:** Tab **⚙️ Pengaturan → kartu Integrasi** (kanan bawah grup "Pengaturan") → isi URL Langflow, Flow ID, dan kredensial AstraDB. Config tersimpan di `data/langflow-config.json` (bertahan saat server restart).
 
-**Tech:** Langflow + Astra DB + Gemini 2.5 Flash + Groq (fallback berlapis)
+> **Catatan penamaan (v2.8):** Di UI pengguna, istilah teknis "RAG" disebut **"Pengetahuan AI"** agar ramah UMKM. ID field backend tetap `cfg-rag-flow-id` (wiring save/load tidak berubah).
+
+**Tech:** Langflow + Astra DB + Gemini 2.5 Flash + Groq (fallback berlapis via "Pengetahuan AI")
 
 ### MODUL 2 — Riset Pasar Instan
 
@@ -154,14 +156,14 @@ UMKM Indonesia (khususnya skala kecil) menghadapi:
 
 | Layer            | Teknologi                  | Status               | Alasan                         |
 | ---------------- | -------------------------- | -------------------- | ------------------------------ |
-| Frontend         | Next.js 15 (App Router)    | BARU                 | Routing per modul, SSR, modern |
-| Backend API      | Node.js Express            | LANJUTKAN (refactor) | Sudah ada, solid               |
-| AI / LLM         | Google Gemini 2.0 Flash    | SUDAH ADA            | API key tersedia               |
-| RAG Engine       | IBM Langflow + Astra DB     | ✅ LIVE (Settings)   | Diintegrasikan ke Modul 1 (v2.7) |
-| Database User    | PostgreSQL                 | SUDAH DI DOCKER      | Profil UMKM & history          |
-| Brand Kit Render | Puppeteer (Node.js)        | GANTI PILLOW         | HTML -> PNG/PDF yang cantik    |
-| Auth             | Clerk atau NextAuth        | TAMBAH               | Multi-user UMKM                |
-| Deployment       | Vercel (FE) + Railway (BE) | UPGRADE              | Lebih production-ready         |
+| Frontend         | HTML/CSS/JS single-page (tanpa framework) | SUDAH ADA       | Keputusan redesign: tetap satu file, dirapikan di tempat |
+| Backend API      | Node.js Express (ESM)                     | LANJUTKAN       | Sudah ada, solid, dipakai di Vercel serverless          |
+| AI / LLM         | Gemini 2.5 Flash + Groq GPT-OSS 120B + OpenRouter | SUDAH ADA | Rantai fallback otomatis (kuota habis → pindah provider) |
+| RAG Engine       | IBM Langflow + Astra DB                   | ✅ LIVE         | Diintegrasikan ke Modul 1 (v2.7); UI menyebut "Pengetahuan AI" |
+| Database User    | PostgreSQL (Neon di Vercel / Docker lokal) | ✅ LIVE (v2.8)  | Persist katalog toko multi-instance                     |
+| Brand Kit Render | Puppeteer (Node.js)                       | SUDAH ADA       | HTML -> PNG/PDF yang cantik                             |
+| Auth             | Clerk atau NextAuth                        | TAMBAH          | Multi-user UMKM (di luar scope fase ini)                |
+| Deployment       | Vercel serverless (root `index.js`)       | ✅ LIVE (v2.8)  | Alias `gen-ai-theta-gold.vercel.app`; DB Neon terhubung |
 
 ---
 
@@ -181,7 +183,7 @@ UMKM Indonesia (khususnya skala kecil) menghadapi:
 | run_chat_pipeline.py            | product-content-engine/          | Pipeline chat lama                     |
 | run_langflow_adapter.py         | product-content-engine/          | Adapter untuk pipeline yang dihapus    |
 | Tombol Lampirkan File           | public/index.html                | Fitur palsu hanya alert()              |
-| Pilihan OpenRouter dropdown     | public/index.html                | Backend tidak support                  |
+| Pilihan OpenRouter dropdown     | public/index.html                | ~~Backend tidak support~~ **REVERT v2.8: OpenRouter diaktifkan lagi** sebagai cadangan otomatis |
 | Tombol Upload Foto              | public/index.html                | Membuka modal yang salah               |
 | Tombol + Opsi Tambahan          | public/index.html                | Kirim chat otomatis tanpa tujuan       |
 | Service n8n                     | docker-compose.yml               | Terlalu kompleks untuk tahap awal      |
@@ -295,6 +297,18 @@ UMKM Indonesia (khususnya skala kecil) menghadapi:
 - [x] Hapus dead code: `widgetFetch`, `_emergencyPrune`, `loadingWatchdog`, guard counter
 - [x] Bump `package.json` ke v2.7.0
 
+### FASE 9 — Keamanan, Redesign UX & Deployment Live (P0–P6)
+
+**Fase ini selesai bertahap; progress = status checkbox di bawah. Roadmap jalan terakhir 13 Sep 2026.**
+
+- [x] **P0 — Keamanan & SSRF guard (v2.8).** `assertPublicHost()` memblokir semua host non-publik (IP privat/literal, localhost, hostname 1-label, TLD internal, IPv6, user:pass) sebelum request Langflow; DNS hostname harus resolve ke IP publik. `clientError()` mem-mask pola raw (nama env, token, path lengkap, detail network) di semua respons error → payload RAG trio (URL Langflow + Flow ID + koleksi) tidak pernah bocor ke log/respons. Pesan error kini ramah Bahasa Indonesia, tidak lagi menampilkan nama variabel env.
+- [x] **P1 — Information Architecture.** Navigasi top-center diganti **sidebar grup** (Dashboard / AI Tools / Toko / Pengaturan / Workspace: riwayat). Tab *Integrasi* terpisah dihapus → konfigurasi Langflow pindah ke Pengaturan. Selector model: Recommended = Gemini, Fast = Groq. Istilah teknis "RAG" → **"Pengetahuan AI"** di semua label pengguna (badge chat, banner produk aktif, header chat tambahan, katalog, about, settings). Cache-bust `?v=5.0`.
+- [x] **P2 — Design tokens.** Semua warna mentah diganti CSS custom property: `--color-success/-info/-warning/-danger/-danger-strong`, `--color-ai-{teal,purple,pink,orange}`, skala spacing `--space-1..10`, skala type `--text-xs..3xl`, focus ring konsisten. Nilai identik → **zero visual change** (diverifikasi, braces seimbang, status-dot `rgb(34,197,94)` tetap).
+- [x] **BONUS — OpenRouter re-aktif + auto-fallback (v2.8).** Provider OpenRouter tampil lagi di selector sebagai "Cadangan otomatis · Multi-LM". Backend di-overhaul: rantai fallback BERTINGKAT di `POST /api/chat` — `gemini→groq→openrouter`, `groq→gemini→openrouter`, atau `openrouter→gemini→groq`; server otomatis geser ke provider berikutnya saat kuota/token habis, `provider` respons menandai `(fallback)`, UI menampilkan toast pemberitahuan. **Keputusan v2.8 ini membalik keputusan lama "hapus OpenRouter".**
+- [x] **P3 — Core UX (SELESAI).** (a) RAG **jujur**: backend sudah menandai `engine` (`langflow-rag` / fallback), UI kini menampilkan tag sumber per jawaban CS — hijau "⚡ Dijawab oleh Pengetahuan AI (katalog toko)" hanya BILA RAG benar-benar menjawab, abu-abu "🧠 konteks katalog" bila fallback; sub-label static di-word-wrap jujur ("setiap jawaban menandai sumbernya"); \n(b) Produk Aktif kini dikirim ke Brand Kit (`product_context`) dan disuntik ke prompt (tagline/story/legalitas mengacu pada produk aktif); (c) dead refs OpenRouter/Gemini-ultra di script.js: bersih (sisa referensi = fitur aktif yang sah). Cache-bust `?v=5.1`.
+- [x] **P4 — Sekunder (SELESAI).** script.js dibersihkan dengan hasil ukur: scanning id → HTML (tidak ada id yatim, keduanya dinamik: toast & chat-area), daftar fungsi vs pemanggilan JS/HTML (hanya `window.toggleModelMenu` yang mati → dihapus; handler menu ternyata sudah bind via `addEventListener`), tanpa TODO/FIXME/console.log/debugger. Tidak ada refactor berisiko tinggi; struktur IIFE + modul Settings standalone dibiarkan (koheren). Cache-bust `?v=5.2`.
+- [x] **P6 - QA end-to-end & regenerasi MASTER_PLAN.md (SELESAI).** Peta & uji 21 endpoint (QA script `qa_local.mjs`): 21/21 PASS lokal. Ditemukan 3 endpoint AI (copywriting, brand-kit, market-research) yang sebelumnya Gemini-only & tanpa fallback -> dipasang rantai failover `gemini -> groq -> openrouter` (uji Gemini 503 teratasi otomatis). QA UI (Puppeteer): 6 view switch mulus, 3 model terpilih, 0 error konsol/HTTP (favicon data-URI ditambahkan); asersi katalog/asesi QA diperbaiki. LIVE QA Vercel (`qa_live.mjs`): 10/10 PASS pada alias produksi `gen-ai-theta-gold.vercel.app` - mask token `Astr…b7ac`, openrouter chain, copywriting, brand-kit + context, market-research, katalog, CS chat auto-fallback semua hijau. Cache-bust `?v=5.3`.
+
 ---
 
 ## 8. ATURAN UNTUK AI AGENT
@@ -307,6 +321,7 @@ UMKM Indonesia (khususnya skala kecil) menghadapi:
 6. Python Pillow/OpenCV TIDAK BOLEH digunakan untuk rendering — gunakan Puppeteer
 7. Semua teks output ke pengguna harus Bahasa Indonesia yang hangat dan ramah
 8. Update Bagian 9 Changelog setiap kali ada perubahan besar
+9. Progress fase 9 dicatat sebagai checkbox di Bagian 7 — cek dulu sebelum menandai selesai
 
 ---
 
@@ -314,6 +329,8 @@ UMKM Indonesia (khususnya skala kecil) menghadapi:
 
 | Tanggal    | Versi | Perubahan                                                                                                                                                                                                                                                                                                                                     |
 | ---------- | ----- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 13 Sep 2026 | v2.9  | **FASE 9 (P3-P6) SELESAI + DEPLOY LIVE.** P3: tag sumber jawaban CS (RAG jujur) + Produk Aktif disuntik ke prompt Brand Kit; P4: dead-code bersih (hapus `toggleModelMenu`); P6: QA end-to-end 21 endpoint lokal + 10 live di Vercel = semua PASS. 3 endpoint AI (copywriting/brand-kit/market-research) diberi rantai failover `gemini->groq->openrouter` (kasus Gemini 503 kini auto-cadangan). Mask token dipersempt jadi `xxxx...xxxx`. Favicon data-URI (konsol bersih). Live di `gen-ai-theta-gold.vercel.app`. |
+| 13 Sep 2026 | v2.8  | **FASE 9 (P0–P2 + BONUS) SELESAI + DEPLOY LIVE.** SSRF guard + mask error di semua endpoint; IA baru (sidebar grup, istilah "Pengetahuan AI", tab Integrasi dipindah ke Pengaturan); design tokens zero-visual-change; OpenRouter DIAKTIFKAN LAGI dengan auto-fallback berlapis (`gemini→groq→openrouter` dsb.) saat kuota/token habis + toast pemberitahuan. Deploy serverless Vercel (`gen-ai-theta-gold.vercel.app`). |
 | 12 Sep 2026 | v2.7  | **FASE 7 & 8 SELESAI.** Integrasi Langflow RAG + AstraDB di Modul 1 Toko Pintar: endpoint `/api/config`, `/api/test-langflow`, `/api/toko-pintar/sync`; tab baru ⚙️ Integrasi (konfigurasi Langflow & AstraDB dengan persistensi `data/langflow-config.json`); chat hybrid RAG → fallback Gemini/Groq; auto-ingestion saat katalog berubah. Cleanup FASE 8: deduplikasi `apiFetch` + hapus ~50.400 baris artifact untracked. |
 | 9 Sep 2026 | v2.6  | **FASE 5 SELESAI.** Riset Pasar Instan (Modul 2): Live endpoint `POST /api/market-research`, 5th View Tab `📊 Riset Pasar` di top bar & sidebar, analisis rentang harga kompetitor, 3 strategi diferensiasi, 5 kata kunci SEO e-commerce dengan click-to-copy, dan rekomendasi platform jualan. **SELURUH 5 MODUL UTAMA MITRAKU AI SELESAI.** |
 | 9 Sep 2026 | v2.5  | **FASE 4 SELESAI.** Toko Pintar AI (Modul 1 - RAG CS 24 Jam): Sub-navigasi 3 mode (Kelola Katalog, Simulasi Chat CS, Link & Embed Widget), REST API `/api/toko-pintar/catalog` & RAG engine `/api/toko-pintar/chat`, dynamic quick prompt buttons.                                                                                            |

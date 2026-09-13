@@ -8,6 +8,7 @@ import { GoogleGenAI } from '@google/genai';
 import Groq from 'groq-sdk';
 import pg from 'pg';
 import rateLimit from 'express-rate-limit';
+import { lookup as dnsLookup } from 'node:dns/promises';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const app = express();
@@ -57,7 +58,7 @@ const PROVIDERS = {
   gemini: {
     model: 'gemini-2.5-flash',
     label: 'Gemini 2.5 Flash',
-    fallbackModels: ['gemini-2.5-flash-lite', 'gemini-1.5-flash']
+    fallbackModels: [] // model lite/1.5-flash usang (404) -> pemulihan via rantai provider ke groq/openrouter
   },
   groq: {
     model: 'openai/gpt-oss-120b',
@@ -119,17 +120,67 @@ let langflowConfig = {
 
 // ── GET /api/config ───────────────────────────────────────────
 app.get('/api/config', (_req, res) => {
-  // mask sensitive fields — only show first 18 chars
+  // mask sensitive fields — tampilkan 4 awal + 4 akhir saja (hindari bocor prefix token)
   const masked = { ...langflowConfig };
-  if (masked.astraToken) masked.astraToken = masked.astraToken.slice(0, 18) + '…';
-  if (masked.apiKey)     masked.apiKey     = masked.apiKey.slice(0, 6)     + '…';
+  const maskToken = (v) => (!v ? '' : v.length <= 8 ? '•••' : `${v.slice(0, 4)}…${v.slice(-4)}`);
+  if (masked.astraToken) masked.astraToken = maskToken(masked.astraToken);
+  if (masked.apiKey)     masked.apiKey     = maskToken(masked.apiKey);
   res.json({ ...masked, langflowEnabled: !!(langflowConfig.langflowUrl && langflowConfig.ragFlowId) });
 });
 
-const isHttpUrl = v => v && /^https?:\/\/\S+/i.test(String(v).trim());
+// ── SSRF guard ────────────────────────────────────────────────
+// URL Langflow / AstraDB dari client HANYA boleh menunjuk host publik.
+// Blok IP privat/literal, hostname internal, dan DNS yang mengarah privat
+// supaya server tidak bisa dipakai untuk SSRF atau eksfil token ke pihak lain.
+const PRIVATE_IP_RE = /^(10\.|127\.|0\.|192\.168\.|172\.(1[6-9]|2\d|3[01])\.|169\.254\.)/;
+const INTERNAL_HOST_RE = /\.(local|internal|home|lan|corp|intranet|localdomain|test)$/i;
+
+async function assertPublicHost(rawUrl, { httpsOnly = false } = {}) {
+  const v = String(rawUrl || '').trim();
+  if (httpsOnly && !/^https:\/\//i.test(v)) throw new Error('URL harus aman (https://).');
+  if (!/^https?:\/\//i.test(v)) throw new Error('URL Langflow harus diawali http:// atau https://');
+
+  let u;
+  try {
+    u = new URL(v);
+  } catch {
+    throw new Error('URL tidak valid.');
+  }
+  if (u.username || u.password) throw new Error('URL tidak boleh mengandung username/password.');
+
+  const host = u.hostname.toLowerCase();
+  if (host.includes(':')) throw new Error('Alamat IPv6 tidak diizinkan di konfigurasi ini.');
+  if (/^\d{1,3}(\.\d{1,3}){3}$/.test(host)) {
+    if (PRIVATE_IP_RE.test(host)) throw new Error('Alamat IP privat tidak diizinkan.');
+  } else if (host === 'localhost' || !host.includes('.') || INTERNAL_HOST_RE.test(host)) {
+    throw new Error('Host internal tidak diizinkan.');
+  }
+
+  // Pastikan resolusi DNS tidak mengarah ke IP privat.
+  try {
+    const addrs = await dnsLookup(host, { all: true });
+    if (addrs.some(a => PRIVATE_IP_RE.test(a.address))) throw new Error('Host merujuk ke alamat privat.');
+  } catch (err) {
+    if (err.code === 'ENOTFOUND') throw new Error('Host tidak ditemukan (DNS).');
+    if (err.code === 'EAI_AGAIN') throw new Error('Gagal memeriksa host. Coba lagi.');
+  }
+
+  return v;
+}
+
+// ── Masker pesan error untuk client ──────────────────────────
+// Jangan bocorkan detail naik teknis (nama env, path file, token, HTTP internal)
+// ke UI. Pesan di luar pola ini (mis. alasan dari provider itu sendiri) tetap tampil.
+const RAW_ERROR_RE = /Langflow HTTP|AbortError|fetch failed|ECONNREFUSED|ECONNRESET|ETIMEDOUT|EPIPE|ENOTFOUND|EAI_AGAIN|ENOENT|EACCES|EPERM|Sasl|password authentication|does not exist|Pool|postgres|\.env|ASTRA_DB|GEMINI_API_KEY|GROQ_API_KEY|OPENROUTER|LANGFLOW_|AstraCS|sk-[A-Za-z0-9]{10,}|Authorization|Bearer/i;
+
+function clientError(err, fallback = 'Terjadi kesalahan pada server AI. Silakan coba lagi.') {
+  const m = (err && (err.message || String(err))) || '';
+  if (!m || RAW_ERROR_RE.test(m)) return fallback;
+  return m;
+}
 
 // ── POST /api/config ──────────────────────────────────────────
-app.post('/api/config', (req, res) => {
+app.post('/api/config', async (req, res) => {
   const { langflowUrl, ingestionFlowId, ragFlowId, astraToken, astraEndpoint, astraCollection, apiKey } = req.body;
 
   // Token/nilai dari GET sudah dimask (mis. "AstraCS:xxx…") — JANGAN timpa
@@ -141,18 +192,21 @@ app.post('/api/config', (req, res) => {
     if (v !== '') langflowConfig[key] = v;
   };
 
-  if (langflowUrl !== undefined && langflowUrl.trim() && !isHttpUrl(langflowUrl)) {
-    return res.status(400).json({ error: 'URL Langflow harus diawali http:// atau https://' });
-  }
-  if (astraEndpoint !== undefined && astraEndpoint.trim() && !isHttpUrl(astraEndpoint)) {
-    return res.status(400).json({ error: 'AstraDB API Endpoint harus diawali https://' });
+  // SSRF guard: langflowUrl & astraEndpoint hanya boleh host publik.
+  try {
+    if (langflowUrl !== undefined && langflowUrl.trim()) {
+      langflowConfig.langflowUrl = await assertPublicHost(langflowUrl);
+    }
+    if (astraEndpoint !== undefined && astraEndpoint.trim()) {
+      langflowConfig.astraEndpoint = await assertPublicHost(astraEndpoint, { httpsOnly: true });
+    }
+  } catch (err) {
+    return res.status(400).json({ error: err.message });
   }
 
-  set('langflowUrl', langflowUrl);
   set('ingestionFlowId', ingestionFlowId);
   set('ragFlowId', ragFlowId);
   if (astraToken !== undefined && !isMasked(astraToken)) set('astraToken', astraToken);
-  set('astraEndpoint', astraEndpoint);
   set('astraCollection', astraCollection);
   if (apiKey !== undefined && !isMasked(apiKey))    set('apiKey', apiKey);
 
@@ -279,7 +333,8 @@ app.post('/api/title', async (req, res) => {
 
 // ── POST /api/chat ────────────────────────────────────────────
 app.post('/api/chat', async (req, res) => {
-  const provider = req.body.provider === 'groq' ? 'groq' : 'gemini';
+  const requested  = req.body.provider;
+  const provider   = (requested === 'groq' || requested === 'openrouter') ? requested : 'gemini';
   const conversation = req.body.conversation;
   const productContext = req.body.product_context;
 
@@ -307,48 +362,31 @@ app.post('/api/chat', async (req, res) => {
     let text;
     let actualProvider = provider;
 
-    if (provider === 'openrouter') {
+    // Rantai fallback otomatis: jika provider pilihan kehabisan kuota/token,
+    // server otomatis mencoba provider berikutnya sampai ada yang berhasil.
+    const order = provider === 'groq'        ? ['groq', 'gemini', 'openrouter']
+                : provider === 'openrouter'  ? ['openrouter', 'gemini', 'groq']
+                : ['gemini', 'groq', 'openrouter'];
+
+    let lastErr;
+    for (const p of order) {
       try {
-        text = await callOpenRouter(safeConv, activeSystemPrompt);
-      } catch (orErr) {
-        console.warn('[chat] OpenRouter error, trying Gemini fallback:', orErr.message);
-        if (process.env.GEMINI_API_KEY?.trim()) {
-          text = await callGemini(safeConv, activeSystemPrompt);
-          actualProvider = 'gemini (fallback)';
-        } else {
-          throw orErr;
-        }
-      }
-    } else if (provider === 'gemini') {
-      try {
-        text = await callGemini(safeConv, activeSystemPrompt);
-      } catch (geminiErr) {
-        console.warn('[chat] Gemini error, trying Groq fallback:', geminiErr.message);
-        if (process.env.GROQ_API_KEY?.trim()) {
-          text = await callGroq(safeConv, activeSystemPrompt);
-          actualProvider = 'groq (fallback)';
-        } else {
-          throw geminiErr;
-        }
-      }
-    } else {
-      try {
-        text = await callGroq(safeConv, activeSystemPrompt);
-      } catch (groqErr) {
-        console.warn('[chat] Groq error, trying Gemini fallback:', groqErr.message);
-        if (process.env.GEMINI_API_KEY?.trim()) {
-          text = await callGemini(safeConv, activeSystemPrompt);
-          actualProvider = 'gemini (fallback)';
-        } else {
-          throw groqErr;
-        }
+        if (p === 'gemini')        text = await callGemini(safeConv, activeSystemPrompt);
+        else if (p === 'groq')     text = await callGroq(safeConv, activeSystemPrompt);
+        else                       text = await callOpenRouter(safeConv, activeSystemPrompt);
+        actualProvider = (p === order[0]) ? p : p + ' (fallback)';
+        break;
+      } catch (err) {
+        lastErr = err;
+        console.warn(`[chat] ${p} gagal, mencoba berikutnya:`, err?.message || err);
       }
     }
+    if (!text) throw lastErr || new Error('Semua provider AI gagal merespons.');
 
     return res.json({ result: text, provider: actualProvider });
   } catch (err) {
     console.error(`[chat] ${provider}:`, err?.message || err);
-    return res.status(500).json({ error: err?.message || 'Terjadi kesalahan pada server AI.' });
+    return res.status(500).json({ error: clientError(err) });
   }
 });
 
@@ -401,23 +439,24 @@ Target pelanggan: ${target_audience || 'umum'}
 
 PENTING: Output HANYA JSON valid tanpa markdown, tanpa teks tambahan apapun.`;
 
+  const providers = [
+    { name: 'gemini', call: () => callGemini([{ role: 'user', text: userInfo }], basePrompt) },
+    { name: 'groq',   call: () => callGroq([{ role: 'user', text: userInfo }], basePrompt) },
+    { name: 'openrouter', call: () => callOpenRouter([{ role: 'user', text: userInfo }], basePrompt) },
+  ];
+  let resultText;
+  for (const p of providers) {
+    try {
+      resultText = await p.call();
+      break;
+    } catch { /* lanjut provider berikutnya */ }
+  }
+  if (!resultText) {
+    return res.status(500).json({ error: clientError(new Error('Semua provider AI gagal.'), 'Gagal generate copywriting. Silakan coba lagi.') });
+  }
+
   try {
-    const client = getGeminiClient();
-    if (!client) throw new Error('GEMINI_API_KEY belum diisi di file .env.');
-
-    const response = await client.models.generateContent({
-      model: PROVIDERS.gemini.model,
-      contents: [{ role: 'user', parts: [{ text: userInfo }] }],
-      config: {
-        temperature: 0.8,
-        topP: 0.95,
-        systemInstruction: basePrompt
-      }
-    });
-
-    if (!response?.text) throw new Error('AI tidak mengembalikan respons.');
-
-    let rawText = response.text.trim();
+    let rawText = resultText.trim();
     rawText = rawText.replace(/^```json\s*/i, '').replace(/```\s*$/i, '').trim();
     const siStart = rawText.indexOf('{');
     const siEnd   = rawText.lastIndexOf('}');
@@ -427,14 +466,14 @@ PENTING: Output HANYA JSON valid tanpa markdown, tanpa teks tambahan apapun.`;
     return res.json({ success: true, platform, result });
   } catch (err) {
     console.error('[copywriting]', err?.message || err);
-    return res.status(500).json({ error: 'Gagal generate copywriting: ' + (err?.message || err) });
+    return res.status(500).json({ error: clientError(err, 'Gagal generate copywriting. Silakan coba lagi.') });
   }
 });
 
 // ── POST /api/brand-kit ───────────────────────────────────────
 // Modul 3 — Brand Kit Generator
 app.post('/api/brand-kit', async (req, res) => {
-  const { brand_name, product_type, personality } = req.body;
+  const { brand_name, product_type, personality, product_context } = req.body;
 
   if (!brand_name) {
     return res.status(400).json({ error: 'Field "brand_name" wajib diisi.' });
@@ -471,30 +510,41 @@ Buat Brand Kit LENGKAP & ESTETIK dalam format JSON valid berikut:
   ]
 }`;
 
+  const pc = (product_context && typeof product_context === 'object') ? product_context : null;
+  const activeProductLines = pc
+    ? `- Nama Produk: ${pc.variant || '-'}
+- Nama Usaha/Brand: ${pc.brand || '-'}
+- Catatan Legalitas/Sell: ${pc.legalities || '-'}`
+    : 'Tidak ada produk aktif yang dipilih pengguna.';
+
   const promptInput = `
 Nama Brand: ${brand_name}
 Jenis Produk / Industri: ${product_type || 'Umum'}
 Kepribadian / Impression Brand: ${personality || 'Modern & Terpercaya'}
 
+PRODUK AKTIF UMKM (dari Pengaturan — bila lengkap, wajib gunakan sebagai acuan utama: sebut produk ini di tagline, brand_story, dan pilih palet yang cocok):
+${activeProductLines}
+
 PENTING: Berikan palet warna HEX yang sangat harmonis dan kontras yang pas sesuai karakter brand. Output HANYA JSON valid tanpa markdown, tanpa teks tambahan apapun.`;
 
+  const providers = [
+    { name: 'gemini', call: () => callGemini([{ role: 'user', text: promptInput }], brandKitSystemPrompt) },
+    { name: 'groq',   call: () => callGroq([{ role: 'user', text: promptInput }], brandKitSystemPrompt) },
+    { name: 'openrouter', call: () => callOpenRouter([{ role: 'user', text: promptInput }], brandKitSystemPrompt) },
+  ];
+  let resultText;
+  for (const p of providers) {
+    try {
+      resultText = await p.call();
+      break;
+    } catch { /* lanjut provider berikutnya */ }
+  }
+  if (!resultText) {
+    return res.status(500).json({ error: clientError(new Error('Semua provider AI gagal.'), 'Gagal generate brand kit. Silakan coba lagi.') });
+  }
+
   try {
-    const client = getGeminiClient();
-    if (!client) throw new Error('GEMINI_API_KEY belum diisi di file .env.');
-
-    const response = await client.models.generateContent({
-      model: PROVIDERS.gemini.model,
-      contents: [{ role: 'user', parts: [{ text: promptInput }] }],
-      config: {
-        temperature: 0.75,
-        topP: 0.95,
-        systemInstruction: brandKitSystemPrompt
-      }
-    });
-
-    if (!response?.text) throw new Error('AI tidak mengembalikan respons.');
-
-    let rawText = response.text.trim();
+    let rawText = resultText.trim();
     rawText = rawText.replace(/^```json\s*/i, '').replace(/```\s*$/i, '').trim();
     const bkStart = rawText.indexOf('{');
     const bkEnd   = rawText.lastIndexOf('}');
@@ -504,7 +554,7 @@ PENTING: Berikan palet warna HEX yang sangat harmonis dan kontras yang pas sesua
     return res.json({ success: true, result });
   } catch (err) {
     console.error('[brand-kit]', err?.message || err);
-    return res.status(500).json({ error: 'Gagal generate brand kit: ' + (err?.message || err) });
+    return res.status(500).json({ error: clientError(err, 'Gagal generate brand kit. Silakan coba lagi.') });
   }
 });
 
@@ -697,23 +747,24 @@ Harga Saat Ini: ${current_price ? 'Rp ' + Number(current_price).toLocaleString('
 
 PENTING: Output HANYA JSON valid tanpa markdown, tanpa teks tambahan apapun.`;
 
+  const providers = [
+    { name: 'gemini', call: () => callGemini([{ role: 'user', text: promptInput }], marketResearchPrompt) },
+    { name: 'groq',   call: () => callGroq([{ role: 'user', text: promptInput }], marketResearchPrompt) },
+    { name: 'openrouter', call: () => callOpenRouter([{ role: 'user', text: promptInput }], marketResearchPrompt) },
+  ];
+  let resultText;
+  for (const p of providers) {
+    try {
+      resultText = await p.call();
+      break;
+    } catch { /* lanjut provider berikutnya */ }
+  }
+  if (!resultText) {
+    return res.status(500).json({ error: clientError(new Error('Semua provider AI gagal.'), 'Gagal generate riset pasar. Silakan coba lagi.') });
+  }
+
   try {
-    const client = getGeminiClient();
-    if (!client) throw new Error('GEMINI_API_KEY belum diisi di file .env.');
-
-    const response = await client.models.generateContent({
-      model: PROVIDERS.gemini.model,
-      contents: [{ role: 'user', parts: [{ text: promptInput }] }],
-      config: {
-        temperature: 0.7,
-        topP: 0.9,
-        systemInstruction: marketResearchPrompt
-      }
-    });
-
-    if (!response?.text) throw new Error('AI tidak mengembalikan respons.');
-
-    let rawText = response.text.trim();
+    let rawText = resultText.trim();
     rawText = rawText.replace(/^```json\s*/i, '').replace(/```\s*$/i, '').trim();
 
     // Fortify JSON extraction
@@ -727,7 +778,7 @@ PENTING: Output HANYA JSON valid tanpa markdown, tanpa teks tambahan apapun.`;
     return res.json({ success: true, result });
   } catch (err) {
     console.error('[market-research]', err?.message || err);
-    return res.status(500).json({ error: 'Gagal analisis riset pasar: ' + (err?.message || err) });
+    return res.status(500).json({ error: clientError(err, 'Gagal analisis riset pasar. Silakan coba lagi.') });
   }
 });
 
@@ -1060,14 +1111,14 @@ ATURAN CUSTOMER SERVICE SANGAT PENTING:
     return res.json({ success: true, answer: resultText, store_name, engine: 'gemini-fallback' });
   } catch (err) {
     console.error('[toko-pintar/chat]', err);
-    return res.status(500).json({ error: 'Gagal merespons pertanyaan CS: ' + (err?.message || err) });
+    return res.status(500).json({ error: clientError(err, 'Gagal merespons pertanyaan CS. Silakan coba lagi.') });
   }
 });
 
 // ── LLM Caller: Gemini ────────────────────────────────────────
 async function callGemini(conversation, customInstruction = SYSTEM_PROMPT) {
   const client = getGeminiClient();
-  if (!client) throw new Error('GEMINI_API_KEY belum diisi di file .env.');
+  if (!client) throw new Error('Kunci API Google AI belum dikonfigurasi di server.');
 
   const contents = conversation.map(msg => ({
     role: msg.role === 'model' ? 'model' : 'user',
@@ -1096,7 +1147,7 @@ async function callGemini(conversation, customInstruction = SYSTEM_PROMPT) {
 // ── LLM Caller: Groq ──────────────────────────────────────────
 async function callGroq(conversation, customInstruction = SYSTEM_PROMPT) {
   const client = getGroqClient();
-  if (!client) throw new Error('GROQ_API_KEY belum diisi di file .env.');
+  if (!client) throw new Error('Kunci API Groq belum dikonfigurasi di server.');
 
   const messages = [
     { role: 'system', content: customInstruction },
@@ -1127,7 +1178,7 @@ async function callGroq(conversation, customInstruction = SYSTEM_PROMPT) {
 // ── LLM Caller: OpenRouter ───────────────────────────────────
 async function callOpenRouter(conversation, customInstruction = SYSTEM_PROMPT) {
   const key = process.env.OPENROUTER_API_KEY?.trim();
-  if (!key) throw new Error('OPENROUTER_API_KEY belum diisi di file .env.');
+  if (!key) throw new Error('Kunci API OpenRouter belum dikonfigurasi di server.');
 
   const messages = [
     { role: 'system', content: customInstruction },

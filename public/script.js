@@ -488,15 +488,6 @@ activeConvId = null;
     setTimeout(() => { if (typeof window.switchView === 'function') window.switchView(savedView); }, 0);
   }
 
-  window.toggleModelMenu = function (e) {
-    if (e && e.stopPropagation) e.stopPropagation();
-    const menu = $('model-menu');
-    if (menu) {
-      const isHidden = menu.style.display === 'none' || !menu.style.display;
-      menu.style.display = isHidden ? 'block' : 'none';
-    }
-  };
-
   /* ── SIDEBAR TOGGLE & COLLAPSE ──────────────────────────────── */
   function initSidebar() {
     // Default to open (expanded)
@@ -655,28 +646,26 @@ activeConvId = null;
       if (data && typeof data === 'object') {
         const geminiDesc = document.querySelector('.model-menu-item[data-value="gemini"] .item-desc');
         const groqDesc   = document.querySelector('.model-menu-item[data-value="groq"] .item-desc');
-        // BUG #6 FIX: Also check and visually disable OpenRouter when not configured
         const orDesc     = document.getElementById('openrouter-desc');
         const orItem     = document.getElementById('model-item-openrouter');
         const orRadio    = orItem?.querySelector('input[type="radio"]');
 
         if (geminiDesc) {
           const gOk = data.gemini?.available;
-          geminiDesc.textContent = gOk ? 'Akurat & cepat · Direkomendasikan ✓' : '⚠️ GEMINI_API_KEY belum diisi';
+          geminiDesc.textContent = gOk ? 'Recommended · Akurat & responsif' : '⚠️ Belum dikonfigurasi di server';
           geminiDesc.style.color = gOk ? '#16a34a' : '#f59e0b';
         }
         if (groqDesc) {
           const gqOk = data.groq?.available;
-          groqDesc.textContent = gqOk ? 'Open Source · Ultra Fast ✓' : '⚠️ GROQ_API_KEY belum diisi (Opsional)';
+          groqDesc.textContent = gqOk ? 'Fast · Respon super cepat' : '⚠️ Opsional — belum dikonfigurasi';
           groqDesc.style.color = gqOk ? '#16a34a' : '#f59e0b';
         }
         if (orItem) {
           const orOk = data.openrouter?.available;
           if (orDesc) {
-            orDesc.textContent = orOk ? 'DeepSeek / Multi LLM ✓' : '⚠️ OPENROUTER_API_KEY belum diisi (.env)';
+            orDesc.textContent = orOk ? 'Cadangan otomatis · Multi-LM' : '⚠️ Opsional — belum dikonfigurasi';
             orDesc.style.color = orOk ? '#16a34a' : '#f59e0b';
           }
-          // Hanya disable visual jika JELAS tidak available — jangan pernah block pointer events
           if (orOk) {
             orItem.style.opacity = '1';
             orItem.style.pointerEvents = '';
@@ -684,7 +673,6 @@ activeConvId = null;
             if (orRadio) orRadio.disabled = false;
           } else {
             orItem.style.opacity = '0.5';
-            // Sengaja TIDAK set pointerEvents:none — tetap bisa diklik, hanya redup
             orItem.classList.add('disabled');
             if (orRadio) orRadio.disabled = false;
           }
@@ -1058,12 +1046,12 @@ activeConvId = null;
 
         // Auto-switch provider notice in UI if server used fallback
         if (data.provider && data.provider.includes('fallback')) {
-          if (selectedProvider === 'openrouter') {
-            showToast('⚠️ OpenRouter belum ada API Key di .env / error. Menjawab via ' + (data.provider.includes('groq') ? 'Groq' : 'Gemini') + ' (Cadangan).');
+          if (data.provider.includes('openrouter')) {
+            showToast('🔥 Gemini & Groq sibuk/kuota habis. Menjawab via OpenRouter (Cadangan).');
           } else if (data.provider.includes('groq')) {
-            showToast('⚡ Gemini error/sibuk. Menjawab via Groq (Cadangan).');
+            showToast('⚡ Gemini error/kuota habis. Menjawab via Groq (Cadangan).');
           } else if (data.provider.includes('gemini')) {
-            showToast('⚡ Groq error/sibuk. Menjawab via Gemini 2.5 Flash (Cadangan).');
+            showToast('⚡ Groq error/kuota habis. Menjawab via Gemini 2.5 Flash (Cadangan).');
           }
         }
 
@@ -1877,7 +1865,8 @@ try {
         body:    JSON.stringify({
           brand_name: brandName,
           product_type: productType,
-          personality
+          personality,
+          product_context: getActiveProductContext()
         })
       });
 
@@ -2069,7 +2058,7 @@ try {
     return brightness < 128;
   }
 
-  /* ── MODUL 1: TOKO PINTAR AI (RAG CS 24 JAM) LOGIC ──────────── */
+  /* ── MODUL 1: TOKO PINTAR AI (PENGETAHUAN AI) LOGIC ──────────── */
   let tpCsConversationHistory = [];
 
   window.switchTpSubView = function (subName) {
@@ -2291,6 +2280,13 @@ try {
 
       if (ok && data.success && data.answer) {
         bubble.innerHTML = renderMd(data.answer);
+        const engine = data.engine === 'langflow-rag' ? 'langflow-rag' : 'context';
+        const tag = document.createElement('div');
+        tag.className = 'tp-engine-tag ' + (engine === 'langflow-rag' ? 'tp-engine-rag' : 'tp-engine-context');
+        tag.textContent = engine === 'langflow-rag'
+          ? '⚡ Dijawab oleh Pengetahuan AI (katalog toko)'
+          : '🧠 Dijawab dari konteks katalog (Pengetahuan AI tidak aktif)';
+        bubble.appendChild(tag);
         tpCsConversationHistory.push({ role: 'user', text: query });
         tpCsConversationHistory.push({ role: 'model', text: data.answer });
       } else {
@@ -2475,16 +2471,6 @@ try {
           preview.style.display = 'none';
         }
       });
-    });
-  }
-
-  // Handle OpenRouter disabled item feedback
-  const openrouterItem = $('model-item-openrouter');
-  if (openrouterItem) {
-    openrouterItem.addEventListener('click', () => {
-      if (openrouterItem.classList.contains('disabled')) {
-        showToast('⚠️ API Key OpenRouter belum dikonfigurasi di server. Silakan gunakan Gemini atau Groq.');
-      }
     });
   }
 

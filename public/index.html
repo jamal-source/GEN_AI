@@ -2,6 +2,7 @@
 <html lang="id" data-theme="light">
 <head>
   <meta charset="UTF-8" />
+  <link rel="icon" href="data:," />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>MitraKu AI — Mitra Digital Cerdas untuk UMKM Indonesia</title>
   <meta name="description" content="MitraKu AI adalah asisten marketing digital untuk UMKM Indonesia. Generate copywriting Shopee, TikTok, Instagram, riset pasar, dan brand kit secara otomatis dengan AI." />
@@ -13,11 +14,11 @@
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/atom-one-dark.min.css">
   <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js" defer></script>
   
-  <link rel="stylesheet" href="style.css?v=4.1"/>
+  <link rel="stylesheet" href="style.css?v=5.3"/>
   <style>
     /* BUG #11 FIX: Print only Brand Kit output section */
     @media print {
-      .sidebar, .top-bar, .view-tabs, .cw-form-panel, .cw-header-banner,
+      .sidebar, .top-bar, .cw-form-panel, .cw-header-banner,
       .tp-subnav, .composer-container, .sidebar-overlay, .bk-action-buttons,
       [id$="-view"]:not(#brandkit-view), #brandkit-view .cw-form-panel,
       #brandkit-view .cw-header-banner { display: none !important; }
@@ -61,6 +62,52 @@
           <span>Chat Baru</span>
         </button>
       </div>
+
+      <!-- Main Navigation (grouped IA) -->
+      <nav class="sidebar-nav" aria-label="Navigasi utama">
+        <div class="sidebar-nav-group">
+          <div class="sidebar-nav-title">Dashboard</div>
+          <button type="button" class="view-tab-btn active" id="tab-chat" onclick="switchView('chat')">
+            <span class="tab-icon">💬</span>
+            <span class="tab-label">Chat AI</span>
+          </button>
+        </div>
+
+        <div class="sidebar-nav-group">
+          <div class="sidebar-nav-title">AI Tools</div>
+          <button type="button" class="view-tab-btn" id="tab-copywriting" onclick="switchView('copywriting')">
+            <span class="tab-icon">✍️</span>
+            <span class="tab-label">Copywriting Factory</span>
+          </button>
+          <button type="button" class="view-tab-btn" id="tab-brandkit" onclick="switchView('brandkit')">
+            <span class="tab-icon">🎨</span>
+            <span class="tab-label">Brand Kit</span>
+          </button>
+          <button type="button" class="view-tab-btn" id="tab-marketresearch" onclick="switchView('marketresearch')">
+            <span class="tab-icon">📊</span>
+            <span class="tab-label">Riset Pasar</span>
+          </button>
+        </div>
+
+        <div class="sidebar-nav-group">
+          <div class="sidebar-nav-title">Toko</div>
+          <button type="button" class="view-tab-btn" id="tab-tokopintar" onclick="switchView('tokopintar')">
+            <span class="tab-icon">🏪</span>
+            <span class="tab-label">Toko Pintar</span>
+          </button>
+        </div>
+
+        <div class="sidebar-nav-group">
+          <div class="sidebar-nav-title">Pengaturan</div>
+          <button type="button" class="view-tab-btn" id="tab-settings" onclick="switchView('settings')">
+            <span class="tab-icon">⚙️</span>
+            <span class="tab-label">Pengaturan</span>
+          </button>
+        </div>
+      </nav>
+
+      <!-- Workspace: riwayat percakapan -->
+      <div class="sidebar-nav-title">Workspace</div>
 
       <!-- Search Input -->
       <div class="sidebar-search-wrap">
@@ -121,36 +168,6 @@
           </button>
         </div>
 
-        <!-- Top Center Navigation Tabs -->
-        <div class="top-center">
-          <nav class="view-tabs">
-            <button type="button" class="view-tab-btn active" id="tab-chat" onclick="switchView('chat')">
-              <span class="tab-icon">💬</span>
-              <span class="tab-label">Chat AI</span>
-            </button>
-            <button type="button" class="view-tab-btn" id="tab-copywriting" onclick="switchView('copywriting')">
-              <span class="tab-icon">✍️</span>
-              <span class="tab-label">Copywriting Factory</span>
-            </button>
-            <button type="button" class="view-tab-btn" id="tab-brandkit" onclick="switchView('brandkit')">
-              <span class="tab-icon">🎨</span>
-              <span class="tab-label">Brand Kit</span>
-            </button>
-            <button type="button" class="view-tab-btn" id="tab-tokopintar" onclick="switchView('tokopintar')">
-              <span class="tab-icon">🏪</span>
-              <span class="tab-label">Toko Pintar</span>
-            </button>
-            <button type="button" class="view-tab-btn" id="tab-marketresearch" onclick="switchView('marketresearch')">
-              <span class="tab-icon">📊</span>
-              <span class="tab-label">Riset Pasar</span>
-            </button>
-            <button type="button" class="view-tab-btn" id="tab-settings" onclick="switchView('settings')">
-              <span class="tab-icon">⚙️</span>
-              <span class="tab-label">Integrasi</span>
-            </button>
-          </nav>
-        </div>
-
         <div class="top-right">
           <!-- Compact Model Selector -->
           <div class="model-dropdown-wrap">
@@ -165,21 +182,21 @@
                 <input type="radio" name="model-choice" value="gemini" checked />
                 <div class="item-text">
                   <div class="item-title">Gemini 2.5 Flash</div>
-                  <div class="item-desc">Akurat &amp; cepat · Direkomendasikan</div>
+                  <div class="item-desc">Recommended · Akurat &amp; responsif</div>
                 </div>
               </label>
               <label class="model-menu-item" data-value="groq">
                 <input type="radio" name="model-choice" value="groq" />
                 <div class="item-text">
                   <div class="item-title">GPT-OSS 120B (Groq)</div>
-                  <div class="item-desc">Open Source · Ultra Fast</div>
+                  <div class="item-desc">Fast · Respon super cepat</div>
                 </div>
               </label>
               <label class="model-menu-item" data-value="openrouter" id="model-item-openrouter">
                 <input type="radio" name="model-choice" value="openrouter" />
                 <div class="item-text">
                   <div class="item-title">OpenRouter AI</div>
-                  <div class="item-desc" id="openrouter-desc">DeepSeek / Multi LLM</div>
+                  <div class="item-desc" id="openrouter-desc">Cadangan otomatis · Multi-LM</div>
                 </div>
               </label>
             </div>
@@ -676,7 +693,7 @@
         </div>
       </div>
 
-      <!-- VIEW 4: TOKO PINTAR AI (RAG CS 24 JAM) VIEW -->
+      <!-- VIEW 4: TOKO PINTAR AI (PENGETAHUAN AI) VIEW -->
       <div id="tokopintar-view" class="view-container" style="display: none;">
         <div class="copywriting-wrapper">
           
@@ -695,13 +712,13 @@
             </div>
             <div class="banner-content">
               <div class="banner-top-row">
-                <div class="cw-header-badge tp-header-badge">🏪 MODUL 3 — TOKO PINTAR AI (RAG CS 24 JAM)</div>
-                <span class="banner-ai-pill">⚡ Powered by RAG AI</span>
+                <div class="cw-header-badge tp-header-badge">🏪 MODUL 3 — TOKO PINTAR AI (CS 24 JAM)</div>
+                <span class="banner-ai-pill">⚡ Pengetahuan AI</span>
               </div>
               <h1 class="cw-header-title">Customer Service AI 24/7 Toko Anda</h1>
-              <p class="cw-header-sub">Kelola katalog produk toko UMKM Anda, uji simulasi chatbot CS cerdas berbasis RAG, dan bagikan link atau embed widget chatbot ke pelanggan.</p>
+              <p class="cw-header-sub">Kelola katalog produk toko UMKM Anda, uji simulasi chatbot CS cerdas berbasis Pengetahuan AI, dan bagikan link atau embed widget chatbot ke pelanggan.</p>
               <div class="banner-highlights">
-                <span class="banner-hl-item"><span class="hl-dot hl-green"></span>RAG Engine</span>
+                <span class="banner-hl-item"><span class="hl-dot hl-green"></span>Pengetahuan AI</span>
                 <span class="banner-hl-item"><span class="hl-dot hl-blue"></span>CS 24/7 Otomatis</span>
                 <span class="banner-hl-item"><span class="hl-dot hl-teal"></span>Multi-Produk Catalog</span>
                 <span class="banner-hl-item"><span class="hl-dot hl-orange"></span>Widget Embed</span>
@@ -727,7 +744,7 @@
             <div class="mfc-card mfc-card-green">
               <div class="mfc-top-bar"></div>
               <div class="mfc-icon">📦</div>
-              <div class="mfc-title">Katalog Produk RAG</div>
+              <div class="mfc-title">Katalog Produk Toko</div>
               <div class="mfc-desc">Database produk toko yang digunakan AI CS untuk menjawab pertanyaan pembeli secara akurat.</div>
             </div>
             <div class="mfc-card mfc-card-teal">
@@ -807,7 +824,7 @@
             <div class="cw-result-panel">
               <div class="cw-results-header">
                 <div class="cw-result-title-group">
-                  <span class="cw-platform-badge badge-shopee" style="background: rgba(16, 185, 129, 0.12); color: #10b981; border-color: rgba(16, 185, 129, 0.3);">📦 RAG Catalog</span>
+                  <span class="cw-platform-badge badge-shopee" style="background: rgba(16, 185, 129, 0.12); color: #10b981; border-color: rgba(16, 185, 129, 0.3);">📦 Katalog Toko</span>
                   <h2 class="cw-result-heading">Katalog Produk Toko Aktif</h2>
                 </div>
                 <button type="button" class="btn-secondary-action btn-sm" onclick="loadStoreCatalog()">
@@ -831,7 +848,7 @@
                 </div>
                 <button type="button" id="tp-cs-reset-btn" class="btn-secondary-action btn-sm" onclick="resetTpCsChat()" style="white-space: nowrap;">🧹 Chat Baru</button>
               </div>
-              <span class="tp-chat-sub">Merespons pertanyaan berdasarkan Katalog Toko secara akurat (RAG Engine)</span>
+              <span class="tp-chat-sub">Mode Pengetahuan AI terpakai otomatis bila server terhubung — setiap jawaban menandai sumbernya</span>
             </div>
 
             <div id="tp-cs-chat-box" class="tp-cs-chat-box">
@@ -1037,13 +1054,13 @@
             </div>
             <div class="banner-content">
               <div class="banner-top-row">
-                <div class="cw-header-badge" style="background:rgba(99,102,241,0.15);border-color:rgba(99,102,241,0.3);color:#6366f1;">⚙️ INTEGRASI AI</div>
+                <div class="cw-header-badge" style="background:rgba(99,102,241,0.15);border-color:rgba(99,102,241,0.3);color:#6366f1;">⚙️ PENGATURAN LANJUTAN</div>
                 <span class="banner-ai-pill">🔗 Langflow + AstraDB</span>
               </div>
-              <h1 class="cw-header-title">Konfigurasi Integrasi Langflow</h1>
-              <p class="cw-header-sub">Hubungkan Toko Pintar AI dengan IBM Langflow dan AstraDB untuk mengaktifkan RAG vector search yang sesungguhnya pada chatbot CS toko Anda.</p>
+              <h1 class="cw-header-title">Pengaturan &amp; Integrasi</h1>
+              <p class="cw-header-sub">Konfigurasi lanjutan: hubungkan chatbot CS toko Anda dengan Langflow dan AstraDB untuk mengaktifkan pencarian pengetahuan dari katalog toko.</p>
               <div class="banner-highlights">
-                <span class="banner-hl-item"><span class="hl-dot hl-indigo"></span>Langflow RAG Engine</span>
+                <span class="banner-hl-item"><span class="hl-dot hl-indigo"></span>Langflow + AstraDB (Advanced)</span>
                 <span class="banner-hl-item"><span class="hl-dot hl-blue"></span>AstraDB Vector Store</span>
                 <span class="banner-hl-item"><span class="hl-dot hl-green"></span>Auto-fallback ke Gemini</span>
                 <span class="banner-hl-item"><span class="hl-dot hl-purple"></span>Per-toko Isolasi Data</span>
@@ -1064,7 +1081,7 @@
                 <div class="settings-card-icon">🔗</div>
                 <div>
                   <div class="settings-card-title">Langflow Server</div>
-                  <div class="settings-card-desc">URL server Langflow dan Flow ID untuk pipeline RAG</div>
+                  <div class="settings-card-desc">URL server Langflow dan Flow ID untuk pipeline pengetahuan AI</div>
                 </div>
                 <div id="lf-status-badge" class="settings-status-badge settings-status-unknown">● Belum dicek</div>
               </div>
@@ -1079,9 +1096,9 @@
                 <p class="settings-hint">Dari URL Langflow saat buka Ingestion Flow: <code>/flow/ID-INI</code></p>
               </div>
               <div class="cw-form-group">
-                <label class="cw-label"><span>RAG Chat Flow ID</span><span class="cw-req">wajib</span></label>
+                <label class="cw-label"><span>Chat Flow ID</span><span class="cw-req">wajib</span></label>
                 <input type="text" id="cfg-rag-flow-id" class="cw-input" placeholder="xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx" />
-                <p class="settings-hint">Dari URL Langflow saat buka RAG Chat Flow: <code>/flow/ID-INI</code></p>
+                <p class="settings-hint">Dari URL Langflow saat buka Chat Flow: <code>/flow/ID-INI</code></p>
               </div>
             </div>
 
@@ -1249,17 +1266,17 @@
 
         <div class="dev-desc-box">
           <h4>💡 Tentang MitraKu AI</h4>
-          <p>MitraKu AI adalah <strong>AI Marketing Suite</strong> lengkap untuk UMKM Indonesia — membantu pemilik usaha kecil menghasilkan copywriting Shopee/TikTok/Instagram, brand kit lengkap, riset pasar instan, dan customer service AI 24/7 otomatis berbasis RAG.</p>
+          <p>MitraKu AI adalah <strong>AI Marketing Suite</strong> lengkap untuk UMKM Indonesia — membantu pemilik usaha kecil menghasilkan copywriting Shopee/TikTok/Instagram, brand kit lengkap, riset pasar instan, dan customer service AI 24/7 otomatis berbasis Pengetahuan AI.</p>
         </div>
 
         <div class="dev-stack-box">
           <h4>🛠️ Tech Stack &amp; Model AI</h4>
           <div class="stack-tags">
             <span class="stag">Google Gemini 2.5 Flash</span>
-            <span class="stag">Groq Llama 3.3 70B</span>
+            <span class="stag">Groq GPT-OSS 120B</span>
             <span class="stag">Node.js Express v5</span>
             <span class="stag">Puppeteer PNG Export</span>
-            <span class="stag">RAG CS Engine</span>
+            <span class="stag">Pengetahuan AI (Langflow)</span>
             <span class="stag">PostgreSQL</span>
           </div>
         </div>
@@ -1297,6 +1314,6 @@
     </div>
   </div>
 
-  <script src="script.js?v=4.4"></script>
+  <script src="script.js?v=5.3"></script>
 </body>
 </html>
