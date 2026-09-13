@@ -218,13 +218,13 @@ UMKM Indonesia (khususnya skala kecil) menghadapi:
 
 ### FASE 0 — Cleanup & Demolisi (LAKUKAN PERTAMA)
 
-- [ ] Hapus file Python yang deprecated (lihat Bagian 5)
-- [ ] Hapus tombol palsu dari public/index.html
-- [ ] Perbaiki label tombol upload foto menjadi "Kelola Produk"
-- [ ] Hapus service n8n dari docker-compose.yml
-- [ ] Hapus N8N_WEBHOOK_URL dari .env dan .env.example
-- [ ] Hapus /api/langflow-generate dari index.js
-- [ ] Hapus /api/trigger-pipeline dari index.js
+- [x] Hapus file Python yang deprecated (lihat Bagian 5)
+- [x] Hapus tombol palsu dari public/index.html
+- [x] Perbaiki label tombol upload foto menjadi "Kelola Produk"
+- [x] Hapus service n8n dari docker-compose.yml
+- [x] Hapus N8N_WEBHOOK_URL dari .env dan .env.example
+- [x] Hapus /api/langflow-generate dari index.js
+- [x] Hapus /api/trigger-pipeline dari index.js
 
 ### FASE 1 — Modul 4: Copywriting Factory (✅ SELESAI)
 
@@ -329,6 +329,7 @@ UMKM Indonesia (khususnya skala kecil) menghadapi:
 
 | Tanggal    | Versi | Perubahan                                                                                                                                                                                                                                                                                                                                     |
 | ---------- | ----- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 13 Sep 2026 | v2.9.1 | **FASE 0 Cleanup selesai.** Semua item legacy (python deprecated, tombol palsu, n8n service, N8N_WEBHOOK_URL, /api/langflow-generate, /api/trigger-pipeline) sudah dihapus dari codebase pada iterasi sebelumnya; checkbox & judul section sekarang tercentang. |
 | 13 Sep 2026 | v2.9  | **FASE 9 (P3-P6) SELESAI + DEPLOY LIVE.** P3: tag sumber jawaban CS (RAG jujur) + Produk Aktif disuntik ke prompt Brand Kit; P4: dead-code bersih (hapus `toggleModelMenu`); P6: QA end-to-end 21 endpoint lokal + 10 live di Vercel = semua PASS. 3 endpoint AI (copywriting/brand-kit/market-research) diberi rantai failover `gemini->groq->openrouter` (kasus Gemini 503 kini auto-cadangan). Mask token dipersempt jadi `xxxx...xxxx`. Favicon data-URI (konsol bersih). Live di `gen-ai-theta-gold.vercel.app`. |
 | 13 Sep 2026 | v2.8  | **FASE 9 (P0–P2 + BONUS) SELESAI + DEPLOY LIVE.** SSRF guard + mask error di semua endpoint; IA baru (sidebar grup, istilah "Pengetahuan AI", tab Integrasi dipindah ke Pengaturan); design tokens zero-visual-change; OpenRouter DIAKTIFKAN LAGI dengan auto-fallback berlapis (`gemini→groq→openrouter` dsb.) saat kuota/token habis + toast pemberitahuan. Deploy serverless Vercel (`gen-ai-theta-gold.vercel.app`). |
 | 12 Sep 2026 | v2.7  | **FASE 7 & 8 SELESAI.** Integrasi Langflow RAG + AstraDB di Modul 1 Toko Pintar: endpoint `/api/config`, `/api/test-langflow`, `/api/toko-pintar/sync`; tab baru ⚙️ Integrasi (konfigurasi Langflow & AstraDB dengan persistensi `data/langflow-config.json`); chat hybrid RAG → fallback Gemini/Groq; auto-ingestion saat katalog berubah. Cleanup FASE 8: deduplikasi `apiFetch` + hapus ~50.400 baris artifact untracked. |
