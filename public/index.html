@@ -14,7 +14,7 @@
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/atom-one-dark.min.css">
   <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js" defer></script>
   
-  <link rel="stylesheet" href="style.css?v=6.2"/>
+  <link rel="stylesheet" href="style.css?v=6.3"/>
   <style>
     /* BUG #11 FIX: Print only Brand Kit output section */
     @media print {
@@ -1309,6 +1309,19 @@
             </div>
           </div>
 
+          <!-- ADVANCED DEVELOPER SETTINGS (khusus developer; collapsed by default) -->
+          <details class="advanced-dev-settings">
+            <summary>
+              <span class="ads-summary-icon">🛠️</span>
+              <span class="ads-summary-title">Advanced Developer Settings (Langflow + AstraDB)</span>
+              <span class="ads-summary-hint">Hanya untuk developer yang memahami arsitektur</span>
+            </summary>
+            <div class="ads-warning">
+              ⚠️ <strong>Zona Developer.</strong> Pengaturan ini tidak akan mengubah tampilan untuk pengguna biasa.
+              Kredensial Langflow &amp; AstraDB diproses oleh <strong>server</strong> (proxy `/api/*`), bukan di browser —
+              token tidak pernah dikirim langsung dari halaman ini ke Langflow/AstraDB.
+            </div>
+
           <!-- MAIN LAYOUT GRID (Matching Toko Pintar & Riset Pasar) -->
           <div class="cw-main-grid">
             <!-- Left Form Panel -->
@@ -1429,6 +1442,7 @@
           </div><!-- /.cw-result-panel -->
 
         </div><!-- /.cw-main-grid -->
+        </details><!-- /.advanced-dev-settings -->
             </div><!-- /.settings-subview-integrasi -->
 </div><!-- /#settings-view -->
 
@@ -1522,6 +1536,6 @@
     </div>
   </div>
 
-  <script src="script.js?v=6.1"></script>
+      <script src="script.js?v=6.3"></script>
 </body>
 </html>
