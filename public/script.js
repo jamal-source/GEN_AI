@@ -1601,7 +1601,12 @@ activeConvId = null;
   window.handleCopywritingSubmit = async function (e) {
     if (e && e.preventDefault) e.preventDefault();
 
-    const productName = $('cw-product-name')?.value.trim();
+    const formProductName = $('cw-product-name')?.value.trim();
+    let productName = formProductName;
+    if (!productName && typeof getActiveProductContext === 'function') {
+      const activeContext = (getActiveProductContext() || {});
+      productName = String(activeContext.name || activeContext.nama || activeContext.namaProduk || activeContext.nama_produk || '').trim();
+    }
     const advantages  = $('cw-advantages')?.value.trim();
     const targetAud   = $('cw-target-audience')?.value.trim();
     const platformEl  = document.querySelector('input[name="cw-platform"]:checked');
