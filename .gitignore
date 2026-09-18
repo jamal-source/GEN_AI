@@ -24,4 +24,4 @@ data/catalogs.json
 .env*
 
 # QA scripts lokal (Puppeteer, dijalankan manual) - jangan masuk git
-.qa_p*.cjs
+.qa_*.cjs
