@@ -2094,7 +2094,8 @@ try {
   window.handleBrandKitSubmit = async function (e) {
     if (e && e.preventDefault) e.preventDefault();
 
-    const brandName   = $('bk-brand-name')?.value.trim();
+    const bkCtx       = getActiveProductContext();
+    const brandName   = $('bk-brand-name')?.value.trim() || (bkCtx?.name || bkCtx?.nama || bkCtx?.namaProduk || bkCtx?.nama_produk || '').trim();
     const productType = $('bk-product-type')?.value.trim();
     const personalityEl = document.querySelector('input[name="bk-personality"]:checked');
     const personality   = personalityEl ? personalityEl.value : 'Modern & Minimalis';
@@ -2576,7 +2577,8 @@ try {
   window.handleMarketResearchSubmit = async function (e) {
     if (e && e.preventDefault) e.preventDefault();
 
-    const name  = $('mr-product-name')?.value.trim();
+    const mrCtx       = getActiveProductContext();
+    const name  = $('mr-product-name')?.value.trim() || (mrCtx?.name || mrCtx?.nama || mrCtx?.namaProduk || mrCtx?.nama_produk || '').trim();
     const cat   = $('mr-category')?.value.trim();
     const price = $('mr-price')?.value;
 
